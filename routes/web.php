@@ -5,6 +5,7 @@ use App\Http\Controllers\Apps\RoleManagementController;
 use App\Http\Controllers\Apps\UserManagementController;
 use App\Http\Controllers\Auth\SocialiteController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ImportController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,6 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('/user-management/permissions', PermissionManagementController::class);
     });
 
+
+    Route::get('/import', [ImportController::class, 'showImportForm'])->name('import.form');
+    Route::post('/import', [ImportController::class, 'importExcel'])->name('import.excel');
 });
 
 Route::get('/error', function () {

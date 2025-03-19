@@ -5,6 +5,8 @@ namespace Database\Seeders;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 use App\Models\Address;
+use App\Models\Kurikulum;
+use App\Models\Prodi;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -29,5 +31,22 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+
+        Prodi::insert([
+            [
+                'nama' => 'Teknik Elektro',
+                'kode' => '20201',
+            ],
+        ]);
+
+        Kurikulum::insert([
+            [
+                'nama' => 'Kurikulum 2020',
+                'prodi_id' => Prodi::where('kode', '20201')->first()->id,
+            ],
+        ]);
+
+        $this->call(MataKuliahKurikulumSeeder::class);
+        $this->call(CplSeeder::class);
     }
 }
