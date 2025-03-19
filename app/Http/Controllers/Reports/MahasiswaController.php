@@ -10,7 +10,7 @@ class MahasiswaController extends Controller
 {
     public function index(MahasiswaDataTable $dataTable)
     {
-        return $dataTable->render('report.list');
+        return $dataTable->render('report.mahasiswa.list');
     }
 
     public function show(Mahasiswa $mahasiswa)
