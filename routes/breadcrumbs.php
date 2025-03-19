@@ -16,6 +16,12 @@ Breadcrumbs::for('dashboard', function (BreadcrumbTrail $trail) {
     $trail->push('Dashboard', route('dashboard'));
 });
 
+// Home > Dashboard > Import
+Breadcrumbs::for('import.form', function (BreadcrumbTrail $trail) {
+    $trail->parent('home');
+    $trail->push('Import Data', route('import.form'));
+});
+
 // Home > Dashboard > User Management
 Breadcrumbs::for('user-management.index', function (BreadcrumbTrail $trail) {
     $trail->parent('dashboard');
