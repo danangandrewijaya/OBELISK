@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\CpmkCplImport;
 use App\Imports\CpmkImport;
@@ -13,61 +14,61 @@ use PhpOffice\PhpSpreadsheet\Settings;
 
 class ImportController extends Controller
 {
-    public function importExcel(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls'
-        ]);
-
-        try {
-            // Load the Excel file and convert to array
-            // $array = Excel::toArray(new CPMKCPLImport, $request->file('file'));
-
-            // Dump and die to see the contents
-            // dd($array);
-
-
-            // Save array to JSON file
-            // $jsonData = json_encode($array, JSON_PRETTY_PRINT);
-            // $filename = 'excel_data_' . date('Y-m-d_His') . '.json';
-            // Storage::put('excel_imports/' . $filename, $jsonData);
-
-            $filePath = $request->file('file');
-
-            // Original import code commented out
-            Excel::import(new CpmkCplImport, $filePath);
-            return back()->with('success', 'Data berhasil diimpor!');
-
-            // $data = Excel::toArray([], $filePath, null, ExcelFormat::XLSX);
-            // dd($data);
-
-            // $spreadsheet = IOFactory::load($filePath);
-
-            // // Pastikan semua formula dihitung ulang sebelum membaca data
-            // $spreadsheet->getActiveSheet()->calculateWorksheetFormula();
-
-            // $sheet = $spreadsheet->getActiveSheet();
-            // $data = [];
-
-            // foreach ($sheet->getRowIterator() as $row) {
-            //     $rowData = [];
-            //     foreach ($row->getCellIterator() as $cell) {
-            //         $rowData[] = $cell->getCalculatedValue(); // Pastikan hanya nilai yang diambil
-            //     }
-            //     $data[] = $rowData;
-            // }
-
-            // dd($data); // Debug hasil baca Excel, seharusnya hanya berisi nilai
-
-
-        } catch (\Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-        }
-    }
-
     public function showImportForm()
     {
         return view('import.form');
+    }
+
+    public function importExcel(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|mimes:xlsx,xls|max:10240' // max 10MB
+            ]);
+
+            if ($validator->fails()) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $validator->errors()->first()
+                    ], 422);
+                }
+                return back()->withErrors($validator);
+            }
+
+            $filePath = $request->file('file');
+            Excel::import(new CpmkCplImport, $filePath);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Data berhasil diimpor!'
+                ]);
+            }
+            return back()->with('success', 'Data berhasil diimpor!');
+
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = collect($e->failures())->map(function($failure) {
+                return $failure->getMessage();
+            })->join(', ');
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi Excel gagal: ' . $failures
+                ], 422);
+            }
+            return back()->with('error', 'Validasi Excel gagal: ' . $failures);
+
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
 
     public function index(Request $request)
