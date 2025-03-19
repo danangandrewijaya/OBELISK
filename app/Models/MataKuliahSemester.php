@@ -35,6 +35,11 @@ class MataKuliahSemester extends Model
         return $this->belongsTo(Dosen::class, 'koord_pengampu_id');
     }
 
+    public function nilaiMahasiswa()
+    {
+        return $this->hasMany(Nilai::class, 'mks_id');
+    }
+
     public function gpm()
     {
         return $this->belongsTo(Dosen::class, 'gpm_id');

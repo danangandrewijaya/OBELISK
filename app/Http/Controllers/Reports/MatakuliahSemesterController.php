@@ -19,6 +19,13 @@ class MatakuliahSemesterController extends Controller
 
     public function show(MataKuliahSemester $matakuliahSemester)
     {
+        $matakuliahSemester->load([
+            'mkk', 
+            'cpmk.cpmkCpl.cpl',
+            'nilaiMahasiswa.mahasiswa.prodi',
+            'nilaiMahasiswa.nilaiCpmk.cpmk'
+        ]);
+
         return view('report.matakuliah-semester.show', compact('matakuliahSemester'));
     }
 }

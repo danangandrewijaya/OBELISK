@@ -20,7 +20,7 @@ class Nilai extends Model
         'nilai_akhir_angka',
         'nilai_akhir_huruf',
         'nilai_bobot',
-        'outcome',
+        'outcome'
     ];
 
     public function mahasiswa()
@@ -28,18 +28,13 @@ class Nilai extends Model
         return $this->belongsTo(Mahasiswa::class);
     }
 
-    public function mks()
+    public function matakuliahSemester()
     {
-        return $this->belongsTo(MataKuliahSemester::class);
-    }
-
-    public function cpmk()
-    {
-        return $this->belongsTo(Cpmk::class);
+        return $this->belongsTo(MataKuliahSemester::class, 'mks_id');
     }
 
     public function nilaiCpmk()
     {
-        return $this->hasMany(NilaiCpmk::class);
+        return $this->hasMany(NilaiCpmk::class, 'nilai_id');
     }
 }
