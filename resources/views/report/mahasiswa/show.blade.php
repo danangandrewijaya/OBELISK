@@ -93,16 +93,21 @@
                         <table class="table table-row-bordered gy-5">
                             <thead>
                                 <tr class="fw-bold fs-6 text-gray-800">
-                                    <th>CPL</th>
+                                    <th style="min-width: 300px;">CPL</th>
                                     @foreach($mahasiswa->nilai->pluck('semester')->unique()->sort() as $semester)
                                         <th class="text-center">Semester {{ $semester }}</th>
                                     @endforeach
                                 </tr>
                             </thead>
                             <tbody>
-                                @for($i = 1; $i <= 10; $i++)
+                                @foreach($cpls as $cpl)
                                     <tr>
-                                        <td>CPL {{ $i }}</td>
+                                        <td>
+                                            <div class="d-flex flex-column">
+                                                <span class="fw-bold">CPL {{ $cpl->nomor }}</span>
+                                                <span class="text-muted">{{ $cpl->nama }}</span>
+                                            </div>
+                                        </td>
                                         @foreach($mahasiswa->nilai->pluck('semester')->unique()->sort() as $semester)
                                             @php
                                                 $semesterNilai = $mahasiswa->nilai->where('semester', $semester);
@@ -112,7 +117,7 @@
                                                 foreach($semesterNilai as $nilai) {
                                                     foreach($nilai->nilaiCpmk as $nilaiCpmk) {
                                                         foreach($nilaiCpmk->cpmk->cpmkCpl as $cpmkCpl) {
-                                                            if($cpmkCpl->cpl_id == $i) {
+                                                            if($cpmkCpl->cpl_id == $cpl->id) {
                                                                 $cplTotal += $nilaiCpmk->nilai_bobot;
                                                                 $cplCount++;
                                                             }
@@ -124,7 +129,10 @@
                                             @endphp
                                             <td class="text-center">
                                                 @if($average !== null)
-                                                    <span class="badge {{ $average >= 2.5 ? 'badge-light-success' : 'badge-light-danger' }}">
+                                                    <span class="badge {{ $average >= 2.5 ? 'badge-light-success' : 'badge-light-danger' }}"
+                                                          data-bs-toggle="tooltip"
+                                                          data-bs-placement="top"
+                                                          title="CPL {{ $cpl->nomor }}: {{ $cpl->nama }}">
                                                         {{ number_format($average, 2) }}
                                                     </span>
                                                 @else
@@ -133,7 +141,7 @@
                                             </td>
                                         @endforeach
                                     </tr>
-                                @endfor
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
@@ -150,7 +158,7 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             })
 
-            // Calculate CPL values
+            // Calculate overall CPL values
             var cplValues = {};
             var cplCounts = {};
 
@@ -167,31 +175,31 @@
                 @endforeach
             @endforeach
 
-            // Calculate averages and determine colors
-            var cplData = [];
-            var cplLabels = [];
-            var barColors = [];
+            // Calculate averages for overall chart
+            var overallCplData = [];
+            var overallCplLabels = [];
+            var overallBarColors = [];
             const threshold = 2.5;
+            var overallValue;
 
-            for (let i = 1; i <= 10; i++) {
-                let value;
-                if (cplCounts[i]) {
-                    value = parseFloat((cplValues[i] / cplCounts[i]).toFixed(2));
-                    cplData.push(value);
-                    barColors.push(value < threshold ? '#F1416C' : '#50CD89'); // Red for below threshold, green for above
+            @foreach($cpls as $cpl)
+                if (cplCounts[{{ $cpl->id }}]) {
+                    overallValue = parseFloat((cplValues[{{ $cpl->id }}] / cplCounts[{{ $cpl->id }}]).toFixed(2));
+                    overallCplData.push(overallValue);
+                    overallBarColors.push(overallValue < threshold ? '#F1416C' : '#50CD89');
                 } else {
-                    value = 0;
-                    cplData.push(value);
-                    barColors.push('#F1416C'); // Red for zero values
+                    overallValue = 0;
+                    overallCplData.push(overallValue);
+                    overallBarColors.push('#F1416C');
                 }
-                cplLabels.push('CPL ' + i);
-            }
+                overallCplLabels.push('CPL {{ $cpl->nomor }}');
+            @endforeach
 
-            // Initialize chart
-            var options = {
+            // Initialize overall CPL chart
+            var overallOptions = {
                 series: [{
                     name: 'Nilai CPL',
-                    data: cplData
+                    data: overallCplData
                 }],
                 chart: {
                     type: 'bar',
@@ -231,7 +239,7 @@
                     colors: ['transparent']
                 },
                 xaxis: {
-                    categories: cplLabels,
+                    categories: overallCplLabels,
                 },
                 yaxis: {
                     title: {
@@ -250,14 +258,14 @@
                         }
                     }
                 },
-                colors: barColors,
+                colors: overallBarColors,
                 legend: {
                     show: false
                 }
             };
 
-            var chart = new ApexCharts(document.querySelector("#cpl_chart"), options);
-            chart.render();
+            var overallChart = new ApexCharts(document.querySelector("#cpl_chart"), overallOptions);
+            overallChart.render();
 
             // Calculate CPL values per semester
             var semesterData = {};
@@ -288,20 +296,21 @@
 
             // Prepare data for chart
             var seriesData = [];
-            for (let i = 1; i <= 10; i++) {
-                let data = [];
+            var cplSemesterValues;
+            @foreach($cpls as $cpl)
+                cplSemesterValues = [];
                 allSemesters.forEach(semester => {
-                    if (semesterData[semester][i] && semesterData[semester][i].count > 0) {
-                        data.push(parseFloat((semesterData[semester][i].total / semesterData[semester][i].count).toFixed(2)));
+                    if (semesterData[semester][{{ $cpl->id }}] && semesterData[semester][{{ $cpl->id }}].count > 0) {
+                        cplSemesterValues.push(parseFloat((semesterData[semester][{{ $cpl->id }}].total / semesterData[semester][{{ $cpl->id }}].count).toFixed(2)));
                     } else {
-                        data.push(null); // Use null for missing data points
+                        cplSemesterValues.push(null);
                     }
                 });
                 seriesData.push({
-                    name: 'CPL ' + i,
-                    data: data
+                    name: 'CPL {{ $cpl->nomor }}',
+                    data: cplSemesterValues
                 });
-            }
+            @endforeach
 
             // Initialize semester chart
             var semesterOptions = {
