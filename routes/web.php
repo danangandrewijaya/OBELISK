@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Reports\MahasiswaController;
+use App\Http\Controllers\Reports\MatakuliahSemesterController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,12 +38,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/import', [ImportController::class, 'showImportForm'])->name('import.form');
     Route::post('/import', [ImportController::class, 'importExcel'])->name('import.excel');
 
-    Route::get('/report', [ReportController::class, 'index'])->name('report.index');
+    Route::prefix('report')->name('report.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::resource('mahasiswa', MahasiswaController::class)->only(['index', 'show']);
+        Route::resource('matakuliah-semester', MatakuliahSemesterController::class)->only(['index', 'show']);
+    });
 
     Route::get('/report/cpmk-cpl', [CpmkCplController::class, 'index'])->name('report.cpmk-cpl');
-
-    Route::get('/report/mahasiswa', [MahasiswaController::class, 'index'])->name('report.mahasiswa');
-    Route::get('/report/mahasiswa/{mahasiswa}', [MahasiswaController::class, 'show'])->name('report.mahasiswa.show');
 });
 
 Route::get('/error', function () {
