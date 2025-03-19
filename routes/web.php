@@ -4,8 +4,11 @@ use App\Http\Controllers\Apps\PermissionManagementController;
 use App\Http\Controllers\Apps\RoleManagementController;
 use App\Http\Controllers\Apps\UserManagementController;
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\CpmkCplController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\Reports\MahasiswaController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,9 +34,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('/user-management/permissions', PermissionManagementController::class);
     });
 
-
     Route::get('/import', [ImportController::class, 'showImportForm'])->name('import.form');
     Route::post('/import', [ImportController::class, 'importExcel'])->name('import.excel');
+
+    Route::get('/report', [ReportController::class, 'index'])->name('report.index');
+
+    Route::get('/report/cpmk-cpl', [CpmkCplController::class, 'index'])->name('report.cpmk-cpl');
+
+    Route::get('/report/mahasiswa', [MahasiswaController::class, 'index'])->name('report.mahasiswa');
+    Route::get('/report/mahasiswa/{mahasiswa}', [MahasiswaController::class, 'show'])->name('report.mahasiswa.show');
 });
 
 Route::get('/error', function () {

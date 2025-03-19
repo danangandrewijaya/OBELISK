@@ -16,4 +16,14 @@ class Mahasiswa extends Model
         'nama',
         'prodi_id',
     ];
+
+    public function prodi()
+    {
+        return $this->belongsTo(Prodi::class);
+    }
+
+    public function nilai()
+    {
+        return $this->hasMany(Nilai::class);
+    }
 }

@@ -22,4 +22,24 @@ class Nilai extends Model
         'nilai_bobot',
         'outcome',
     ];
+
+    public function mahasiswa()
+    {
+        return $this->belongsTo(Mahasiswa::class);
+    }
+
+    public function mks()
+    {
+        return $this->belongsTo(MataKuliahSemester::class);
+    }
+
+    public function cpmk()
+    {
+        return $this->belongsTo(Cpmk::class);
+    }
+
+    public function nilaiCpmk()
+    {
+        return $this->hasMany(NilaiCpmk::class);
+    }
 }

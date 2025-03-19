@@ -17,4 +17,14 @@ class NilaiCpmk extends Model
         'nilai_angka',
         'nilai_bobot',
     ];
+
+    public function nilai()
+    {
+        return $this->belongsTo(Nilai::class);
+    }
+
+    public function cpmk()
+    {
+        return $this->belongsTo(Cpmk::class);
+    }
 }
