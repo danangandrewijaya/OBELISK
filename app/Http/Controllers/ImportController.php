@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\CpmkCplImport;
 use App\Imports\CpmkImport;
@@ -27,7 +28,7 @@ class ImportController extends Controller
 
         try {
             $validator = Validator::make($request->all(), [
-                'file' => 'required|mimes:xlsx,xls|max:10240' // max 10MB
+                'file' => $request->has('confirm') ? 'nullable' : 'required|mimes:xlsx,xls|max:10240'
             ]);
 
             if ($validator->fails()) {
@@ -40,8 +41,33 @@ class ImportController extends Controller
                 return back()->withErrors($validator);
             }
 
-            $filePath = $request->file('file');
-            Excel::import(new CpmkCplImport($kurikulum), $filePath);
+            if (!$request->has('confirm')) {
+                // Preview mode - don't save to database
+                $file = $request->file('file');
+                $fileName = $file->getClientOriginalName();
+                $filePath = $file->storeAs('temp', $fileName, 'public');
+
+                $importer = new CpmkCplImport($kurikulum, true);
+                $preview = Excel::toArray($importer, $file);
+
+                return view('import.preview', [
+                    'preview' => $preview,
+                    'kurikulum' => $kurikulum,
+                    'tempFile' => $filePath
+                ]);
+            }
+
+            // Confirmation received - get file from temp storage
+            $tempFile = $request->input('temp_file');
+            if (!$tempFile || !Storage::disk('public')->exists($tempFile)) {
+                return back()->with('error', 'File tidak ditemukan. Silakan upload ulang.');
+            }
+
+            $filePath = Storage::disk('public')->path($tempFile);
+            Excel::import(new CpmkCplImport($kurikulum, false), $filePath);
+
+            // Clean up temp file
+            Storage::disk('public')->delete($tempFile);
 
             if ($request->ajax()) {
                 return response()->json([
@@ -59,19 +85,18 @@ class ImportController extends Controller
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Validasi Excel gagal: ' . $failures
+                    'message' => $failures
                 ], 422);
             }
-            return back()->with('error', 'Validasi Excel gagal: ' . $failures);
-
+            return back()->with('error', $failures);
         } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                    'message' => $e->getMessage()
                 ], 500);
             }
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return back()->with('error', $e->getMessage());
         }
     }
 
