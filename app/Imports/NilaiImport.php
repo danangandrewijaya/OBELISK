@@ -11,6 +11,13 @@ use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 
 class NilaiImport implements ToCollection, WithCalculatedFormulas
 {
+    private $kurikulum;
+
+    public function __construct($kurikulum)
+    {
+        $this->kurikulum = $kurikulum;
+    }
+
     public function collection(Collection $rows)
     {
         // dd($rows);
@@ -19,7 +26,7 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
         $semester      = strtolower($rows[2][1]) === 'genap' ? 2 : 1;
         $kelas         = $rows[3][1];
 
-        $cpmkCplImport = new CpmkCplImport();
+        $cpmkCplImport = new CpmkCplImport($this->kurikulum);
         $mks = $cpmkCplImport->getMataKuliahSemester($mataKuliahKode, $tahun, $semester);
 
         $rows = $rows->slice(7);

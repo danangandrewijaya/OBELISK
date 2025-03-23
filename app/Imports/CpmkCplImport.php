@@ -18,11 +18,18 @@ use Maatwebsite\Excel\Exceptions\NoSheetsFoundException;
 
 class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesToOtherSheets
 {
+    private $kurikulum;
+
+    public function __construct($kurikulum)
+    {
+        $this->kurikulum = $kurikulum;
+    }
+
     public function sheets(): array
     {
         return [
             'CPMK-CPL' => $this, // Ensure 'CPMK-CPL' sheet is processed
-            'FORM NILAI SIAP' => new NilaiImport(), // Add another sheet to be processed
+            'FORM NILAI SIAP' => new NilaiImport($this->kurikulum), // Add another sheet to be processed
             'NILAI Partisipatif' => new NilaiLainImport(), // Add another sheet to be processed
             'NILAI Proyek' => new NilaiLainImport(), // Add another sheet to be processed
             'NILAI TUGAS' => new NilaiLainImport(), // Add another sheet to be processed

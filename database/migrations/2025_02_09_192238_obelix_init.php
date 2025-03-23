@@ -106,11 +106,10 @@ return new class extends Migration {
             $table->integer('nomor');
             $table->string('nama');
             $table->text('deskripsi');
-            $table->foreignId('prodi_id')->constrained((new Prodi)->getTable())->onDelete('cascade');
-            // $table->foreignId('kurikulum_id')->constrained(self::TABLE_KURIKULUM)->onDelete('cascade');
+            $table->foreignId('kurikulum_id')->constrained((new Kurikulum)->getTable())->onDelete('cascade');
             $table->timestamps();
 
-            $table->unique(['prodi_id', 'nomor']);
+            $table->unique(['kurikulum_id', 'nomor']);
         });
 
         // Tabel PI / SUB CPL

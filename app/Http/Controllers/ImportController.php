@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\CpmkCplImport;
 use App\Imports\CpmkImport;
+use App\Models\Kurikulum;
 use App\Models\MataKuliahSemester;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -16,11 +17,14 @@ class ImportController extends Controller
 {
     public function showImportForm()
     {
-        return view('import.form');
+        $kurikulums = Kurikulum::all();
+        return view('import.form', compact('kurikulums'));
     }
 
     public function importExcel(Request $request)
     {
+        $kurikulum = Kurikulum::find($request->kurikulum);
+
         try {
             $validator = Validator::make($request->all(), [
                 'file' => 'required|mimes:xlsx,xls|max:10240' // max 10MB
@@ -37,7 +41,7 @@ class ImportController extends Controller
             }
 
             $filePath = $request->file('file');
-            Excel::import(new CpmkCplImport, $filePath);
+            Excel::import(new CpmkCplImport($kurikulum), $filePath);
 
             if ($request->ajax()) {
                 return response()->json([
