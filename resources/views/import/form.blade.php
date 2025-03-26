@@ -20,7 +20,7 @@
                     <input type="file" name="file" id="file" accept=".xlsx,.xls" class="form-control form-control-solid">
                 </div>
 
-                <div class="mb-5">
+                {{-- <div class="mb-5">
                     <label class="form-label required" for="file">Pilih Kurikulum</label>
                     <select name="kurikulum" id="kurikulum" class="form-select form-select-solid">
                         <option value="">--Pilih Kurikulum--</option>
@@ -28,7 +28,7 @@
                             <option value="{{ $kurikulum->id }}">{{ $kurikulum->nama }}</option>
                         @endforeach
                     </select>
-                </div>
+                </div> --}}
 
                 @if(session('success'))
                     <div class="alert alert-success d-flex align-items-center p-5 mb-5">

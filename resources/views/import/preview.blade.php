@@ -160,7 +160,7 @@
                     <form action="{{ route('import.excel') }}" method="POST" enctype="multipart/form-data" class="mt-4">
                         @csrf
                         <input type="hidden" name="confirm" value="1">
-                        <input type="hidden" name="kurikulum" value="{{ $kurikulum->id }}">
+                        {{-- <input type="hidden" name="kurikulum" value="{{ $kurikulum->id }}"> --}}
                         <input type="hidden" name="temp_file" value="{{ $tempFile }}">
 
                         <div class="row">

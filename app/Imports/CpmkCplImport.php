@@ -148,13 +148,21 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
             }
 
             if (isset($cpmkCpl[$cpmk]['cpl'])) {
-                $cpl = Cpl::where('nomor', $cpmkCpl[$cpmk]['cpl'])->first();
-                if (!$cpl) {
-                    throw new \Exception('CPL tidak ditemukan');
+                // Get kurikulum_id from MataKuliahKurikulum
+                $mkk = MataKuliahKurikulum::whereRaw('LOWER(kode) = ?', [strtolower($mataKuliahKode)])->first();
+                if (!$mkk) {
+                    throw new \Exception('Mata kuliah kurikulum tidak ditemukan');
                 }
-                // dd($cpl);
 
-                // dd($row);
+                // Get CPL from the correct kurikulum
+                $cpl = Cpl::where('nomor', $cpmkCpl[$cpmk]['cpl'])
+                    ->where('kurikulum_id', $mkk->kurikulum_id)
+                    ->first();
+                    
+                if (!$cpl) {
+                    throw new \Exception('CPL tidak ditemukan untuk kurikulum ini');
+                }
+
                 CPMKCPL::updateOrCreate(
                     [
                         'cpmk_id' => $dbCpmk->id,
