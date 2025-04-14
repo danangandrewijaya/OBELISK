@@ -129,10 +129,13 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
                 } else {
                     // Update the 'nilai_bobot' for the previous 'nilai_cpmk'
                     $cpmkCplItem = $cpmk[$cpmkIndex2 - 1];
+                    // Convert and validate nilai_bobot
+                    $nilaiBobot = is_numeric($value) ? round((float) str_replace(',', '.', $value), 2) : 0;
+                    
                     NilaiCpmk::where([
                         'nilai_id' => $dbNilai->id,
                         'cpmk_id' => $cpmkCplItem->id,
-                    ])->update(['nilai_bobot' => $value]);
+                    ])->update(['nilai_bobot' => $nilaiBobot]);
                 }
                 $cpmkIndex++;
             });
