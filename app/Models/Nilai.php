@@ -38,4 +38,9 @@ class Nilai extends Model
     {
         return $this->hasMany(NilaiCpmk::class, 'nilai_id');
     }
+
+    public function nilaiCpl()
+    {
+        return $this->hasMany(NilaiCpl::class, 'nilai_id');
+    }
 }

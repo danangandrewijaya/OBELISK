@@ -31,7 +31,123 @@
 
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Data Nilai</div>
+                    <div class="card-title">Nilai CPL</div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-row-bordered gy-5">
+                            <thead>
+                                <tr class="fw-bold fs-6 text-gray-800">
+                                    <th>Mata Kuliah</th>
+                                    <th>CPL 1</th>
+                                    <th>CPL 2</th>
+                                    <th>CPL 3</th>
+                                    <th>CPL 4</th>
+                                    <th>CPL 5</th>
+                                    <th>CPL 6</th>
+                                    <th>CPL 7</th>
+                                    <th>CPL 8</th>
+                                    <th>CPL 9</th>
+                                    <th>CPL 10</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($mahasiswa->nilai as $nilai)
+                                <tr>
+                                    <td>{{ $nilai->mks->mkk->kode }} - {{ $nilai->mks->mkk->nama }}</td>
+                                    @php
+                                        $cplId1 = $cpls->where('nomor', 1)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId1)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId1)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    @php
+                                        $cplId2 = $cpls->where('nomor', 2)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId2)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId2)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    @php
+                                        $cplId3 = $cpls->where('nomor', 3)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId3)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId3)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    @php
+                                        $cplId4 = $cpls->where('nomor', 4)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId4)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId4)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    @php
+                                        $cplId5 = $cpls->where('nomor', 5)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId5)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId5)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    @php
+                                        $cplId6 = $cpls->where('nomor', 6)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId6)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', 6)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    @php
+                                        $cplId7 = $cpls->where('nomor', 7)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId7)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId7)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    @php
+                                        $cplId8 = $cpls->where('nomor', 8)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId8)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId8)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    @php
+                                        $cplId9 = $cpls->where('nomor', 9)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId9)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId9)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                    @php
+                                        $cplId10 = $cpls->where('nomor', 10)->first()->id;
+                                    @endphp
+                                    @if($nilai->nilaiCpl->where('cpl_id', $cplId10)->first())
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId10)->first()->nilai_angka }}</td>
+                                    @else
+                                        <td></td>
+                                    @endif
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="separator my-5"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Transkrip Makul</div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
