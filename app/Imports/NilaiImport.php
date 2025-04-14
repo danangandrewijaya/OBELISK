@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\Mahasiswa;
 use App\Models\Nilai;
 use App\Models\NilaiCpmk;
+use App\Models\NilaiCpl;
 use App\Models\MataKuliahKurikulum;
 use App\Models\MataKuliahSemester;
 use Illuminate\Support\Collection;
@@ -131,5 +132,8 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
                 $cpmkIndex++;
             });
         });
+
+        $nilaiCpl = new NilaiCpl();
+        $nilaiCpl->createNilaiCplFromMks($mks);
     }
 }

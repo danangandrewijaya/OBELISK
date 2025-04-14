@@ -17,6 +17,8 @@ use App\Models\CpmkCpl;
 use App\Models\CpmkPi;
 use App\Models\Nilai;
 use App\Models\NilaiCpmk;
+use App\Models\NilaiCpl;
+use App\Models\NilaiPi;
 
 return new class extends Migration {
     public function up(): void
@@ -188,6 +190,30 @@ return new class extends Migration {
             $table->timestamps();
 
             $table->unique(['nilai_id', 'cpmk_id']);
+        });
+
+        // Tabel Nilai - CPL
+        Schema::create((new NilaiCpl)->getTable(), function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('nilai_id')->constrained((new Nilai)->getTable())->onDelete('cascade');
+            $table->foreignId('cpl_id')->constrained((new Cpl)->getTable())->onDelete('cascade');
+            $table->float('nilai_angka')->check('nilai >= 0 AND nilai <= 100')->nullable();
+            $table->float('nilai_bobot')->check('nilai_angka >= 0 AND nilai_angka <= 4')->nullable();
+            $table->timestamps();
+
+            $table->unique(['nilai_id', 'cpl_id']);
+        });
+
+        // Tabel Nilai - PI
+        Schema::create((new NilaiPi)->getTable(), function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('nilai_id')->constrained((new Nilai)->getTable())->onDelete('cascade');
+            $table->foreignId('pi_id')->constrained((new Pi)->getTable())->onDelete('cascade');
+            $table->float('nilai_angka')->check('nilai >= 0 AND nilai <= 100')->nullable();
+            $table->float('nilai_bobot')->check('nilai_angka >= 0 AND nilai_angka <= 4')->nullable();
+            $table->timestamps();
+
+            $table->unique(['nilai_id', 'pi_id']);
         });
     }
 
