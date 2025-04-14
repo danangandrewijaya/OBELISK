@@ -163,7 +163,7 @@
                     @endif
                     @endforeach
 
-                    <form action="{{ route('import.excel') }}" method="POST" enctype="multipart/form-data" class="mt-4">
+                    <form action="{{ route('import.excel') }}" method="POST" enctype="multipart/form-data" class="mt-4" id="confirm-form">
                         @csrf
                         <input type="hidden" name="confirm" value="1">
                         {{-- <input type="hidden" name="kurikulum" value="{{ $kurikulum->id }}"> --}}
@@ -172,7 +172,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <a href="{{ route('import.form') }}" class="btn btn-secondary">Batal</a>
-                                <button type="submit" class="btn btn-primary">Konfirmasi Import</button>
+                                <button type="submit" class="btn btn-primary" id="confirm-button">Konfirmasi Import</button>
                             </div>
                         </div>
                     </form>
@@ -181,5 +181,25 @@
         </div>
     </div>
 </div>
-@endsection
+</div>
+
+@include('components.loading-modal')
+
+@push('scripts')
+<script>
+    // Handle form submission
+    const form = document.getElementById('confirm-form');
+    const submitButton = document.getElementById('confirm-button');
+
+    form.addEventListener('submit', function(e) {
+        // Show loading modal
+        const loadingModal = new bootstrap.Modal(document.getElementById('loading-modal'));
+        loadingModal.show();
+
+        // Disable button
+        submitButton.setAttribute('data-kt-indicator', 'on');
+        submitButton.disabled = true;
+    });
+</script>
+@endpush
 </x-default-layout>

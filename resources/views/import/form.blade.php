@@ -82,6 +82,8 @@
         </div>
     </div>
 
+    @include('components.loading-modal')
+
     @push('scripts')
     <script>
         // Handle form submission
@@ -89,6 +91,10 @@
         const submitButton = document.getElementById('import-button');
 
         form.addEventListener('submit', function(e) {
+            // Show loading modal
+            const loadingModal = new bootstrap.Modal(document.getElementById('loading-modal'));
+            loadingModal.show();
+
             // Disable button
             submitButton.setAttribute('data-kt-indicator', 'on');
             submitButton.disabled = true;
@@ -97,6 +103,9 @@
             setTimeout(function() {
                 submitButton.removeAttribute('data-kt-indicator');
                 submitButton.disabled = false;
+                
+                // Hide loading modal
+                loadingModal.hide();
             }, 60000);
         });
     </script>
