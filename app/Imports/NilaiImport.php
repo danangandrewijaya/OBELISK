@@ -39,11 +39,37 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
             if (!$mahasiswa) {
                 Mahasiswa::insert([
                     'nim' => $nim,
-                    'nama' => $row[1],
+                    'nama' => preg_replace('/\s*\(.*\)$/', '', $row[1]),
                     'prodi_id' => 1, // belum ada di excel
                 ]);
                 $mahasiswa = Mahasiswa::where('nim', $nim)->first();
             }
+
+            // Nilai Terbaik - Join dengan MKS dan MKK untuk cari nilai terbaik dari MKK yang sama
+            $nilaiHistoris = Nilai::join('mata_kuliah_semester as mks', 'mks.id', '=', 'nilai.mks_id')
+                ->join('mata_kuliah_kurikulum as mkk', 'mkk.id', '=', 'mks.mkk_id')
+                ->where('nilai.mahasiswa_id', $mahasiswa->id)
+                ->where('mkk.id', function($query) use ($mks) {
+                    $query->select('mkk_id')
+                        ->from('mata_kuliah_semester')
+                        ->where('id', $mks->id)
+                        ->first();
+                })
+                ->where('nilai.is_terbaik', true)
+                ->select('nilai.*')
+                ->first();
+
+            $nilaiTerbaik = true;
+            if ($nilaiHistoris) {
+                if ($nilaiHistoris->nilai_akhir_angka > $row[10]) {
+                    $nilaiTerbaik = false;
+                }else{
+                    $nilaiHistoris->update([
+                        'is_terbaik' => false,
+                    ]);
+                }
+            }
+
             $nilai = [
                 'mahasiswa_id' => $mahasiswa->id,
                 'mks_id' => $mks->id,
@@ -54,6 +80,7 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
                 'nilai_akhir_huruf' => $row[11],
                 'nilai_bobot' => (float) str_replace(',', '.', $row[12]),
                 'outcome' => $row[13],
+                'is_terbaik' => $nilaiTerbaik,
             ];
 
             $dbNilai = Nilai::updateOrCreate(

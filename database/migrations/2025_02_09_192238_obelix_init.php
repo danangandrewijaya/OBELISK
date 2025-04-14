@@ -172,6 +172,7 @@ return new class extends Migration {
             $table->float('nilai_bobot')->check('nilai_angka >= 0 AND nilai_angka <= 4');
             // $table->enum('outcome', ['lulus', 'remidi_cpmk', 'tidak_lulus']);
             $table->string('outcome');
+            $table->boolean('is_terbaik')->default(false);
             $table->timestamps();
 
             $table->unique(['mahasiswa_id', 'mks_id']);

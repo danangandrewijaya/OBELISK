@@ -20,7 +20,8 @@ class Nilai extends Model
         'nilai_akhir_angka',
         'nilai_akhir_huruf',
         'nilai_bobot',
-        'outcome'
+        'outcome',
+        'is_terbaik'
     ];
 
     public function mahasiswa()
