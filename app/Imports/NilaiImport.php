@@ -5,6 +5,8 @@ namespace App\Imports;
 use App\Models\Mahasiswa;
 use App\Models\Nilai;
 use App\Models\NilaiCpmk;
+use App\Models\MataKuliahKurikulum;
+use App\Models\MataKuliahSemester;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
@@ -46,12 +48,13 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
             }
 
             // Nilai Terbaik - Join dengan MKS dan MKK untuk cari nilai terbaik dari MKK yang sama
-            $nilaiHistoris = Nilai::join('mata_kuliah_semester as mks', 'mks.id', '=', 'nilai.mks_id')
-                ->join('mata_kuliah_kurikulum as mkk', 'mkk.id', '=', 'mks.mkk_id')
+            $nilaiHistoris = Nilai::from((new Nilai)->getTable().' as nilai')
+                ->join((new MataKuliahSemester)->getTable().' as mks', 'mks.id', '=', 'nilai.mks_id')
+                ->join((new MataKuliahKurikulum)->getTable().' as mkk', 'mkk.id', '=', 'mks.mkk_id')
                 ->where('nilai.mahasiswa_id', $mahasiswa->id)
                 ->where('mkk.id', function($query) use ($mks) {
                     $query->select('mkk_id')
-                        ->from('mata_kuliah_semester')
+                        ->from((new MataKuliahSemester)->getTable())
                         ->where('id', $mks->id)
                         ->first();
                 })
