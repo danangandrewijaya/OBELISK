@@ -134,6 +134,12 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
+                                                @php
+                                                    $rowNilaiAkhirAngka = strpos(strtolower($sheetData[6][8]), 'nilai akhir angka') === 0 ? 8 : 10;
+                                                    $rowNilaiAkhirHuruf = $rowNilaiAkhirAngka + 1;
+                                                    $rowNilaiBobot = $rowNilaiAkhirHuruf + 1;
+                                                    $rowOutcome = $rowNilaiBobot + 1;
+                                                @endphp
                                                 @foreach(array_slice($sheetData, 7) as $row)
                                                     @if(!empty($row[0]))
                                                         <tr>
@@ -141,10 +147,10 @@
                                                             <td>{{ $row[1] }}</td>
                                                             <td>{{ $row[2] }}</td>
                                                             <td>{{ $row[3] }}</td>
-                                                            <td>{{ $row[10] }}</td>
-                                                            <td>{{ $row[11] }}</td>
-                                                            <td>{{ str_replace(',', '.', $row[12]) }}</td>
-                                                            <td>{{ $row[13] }}</td>
+                                                            <td>{{ $row[$rowNilaiAkhirAngka] }}</td>
+                                                            <td>{{ $row[$rowNilaiAkhirHuruf] }}</td>
+                                                            <td>{{ str_replace(',', '.', $row[$rowNilaiBobot]) }}</td>
+                                                            <td>{{ $row[$rowOutcome] }}</td>
                                                         </tr>
                                                     @endif
                                                 @endforeach

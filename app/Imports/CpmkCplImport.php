@@ -16,7 +16,7 @@ use Maatwebsite\Excel\Concerns\HasReferencesToOtherSheets;
 use Maatwebsite\Excel\Concerns\SkipsUnknownSheets;
 use Maatwebsite\Excel\Exceptions\NoSheetsFoundException;
 
-class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesToOtherSheets
+class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesToOtherSheets, SkipsUnknownSheets
 {
     private $kurikulum;
 
@@ -30,14 +30,22 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
         return [
             'CPMK-CPL' => $this, // Ensure 'CPMK-CPL' sheet is processed
             'FORM NILAI SIAP' => new NilaiImport($this->kurikulum), // Add another sheet to be processed
+
             'NILAI Partisipatif' => new NilaiLainImport(), // Add another sheet to be processed
             'NILAI Proyek' => new NilaiLainImport(), // Add another sheet to be processed
             'NILAI TUGAS' => new NilaiLainImport(), // Add another sheet to be processed
             'NILAI QUIZ' => new NilaiLainImport(), // Add another sheet to be processed
             'NILAI UTS' => new NilaiLainImport(), // Add another sheet to be processed
             'NILAI UAS' => new NilaiLainImport(), // Add another sheet to be processed
-            // 'NILAI tes' => new NilaiLainImport(), // Add another sheet to be processed
+
+            'NILAI PRAKTEK' => new NilaiLainImport(), // Add another sheet to be processed
         ];
+    }
+
+    public function onUnknownSheet($sheetName): void
+    {
+        // Do nothing or handle unknown sheet as needed
+        info("Skipping unknown sheet: {$sheetName}");
     }
 
     public function collection(Collection $rows)
@@ -158,7 +166,7 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
                 $cpl = Cpl::where('nomor', $cpmkCpl[$cpmk]['cpl'])
                     ->where('kurikulum_id', $mkk->kurikulum_id)
                     ->first();
-                    
+
                 if (!$cpl) {
                     throw new \Exception('CPL tidak ditemukan untuk kurikulum ini');
                 }

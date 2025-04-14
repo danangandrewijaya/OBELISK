@@ -32,8 +32,13 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
         $cpmkCplImport = new CpmkCplImport($this->kurikulum);
         $mks = $cpmkCplImport->getMataKuliahSemester($mataKuliahKode, $tahun, $semester);
 
+        $rowNilaiAkhirAngka = strpos(strtolower($rows[6][8]), 'nilai akhir angka') === 0 ? 8 : 10;
+        $rowNilaiAkhirHuruf = $rowNilaiAkhirAngka + 1;
+        $rowNilaiBobot = $rowNilaiAkhirHuruf + 1;
+        $rowOutcome = $rowNilaiBobot + 1;
+
         $rows = $rows->slice(7);
-        $rows->each(function ($row) use ($mks, $kelas, &$nilaiArray) {
+        $rows->each(function ($row) use ($mks, $kelas, $rowNilaiAkhirAngka, $rowNilaiAkhirHuruf, $rowNilaiBobot, $rowOutcome) {
             $nim = $row[0];
             if (is_null($nim)) {
                 return false;
@@ -65,7 +70,7 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
 
             $nilaiTerbaik = true;
             if ($nilaiHistoris) {
-                if ($nilaiHistoris->nilai_akhir_angka > $row[10]) {
+                if ($nilaiHistoris->nilai_akhir_angka > $row[$rowNilaiAkhirAngka]) {
                     $nilaiTerbaik = false;
                 }else{
                     $nilaiHistoris->update([
@@ -80,10 +85,10 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
                 'kelas' => $kelas,
                 'semester' => $row[2],
                 'status' => $row[3],
-                'nilai_akhir_angka' => $row[10],
-                'nilai_akhir_huruf' => $row[11],
-                'nilai_bobot' => (float) str_replace(',', '.', $row[12]),
-                'outcome' => $row[13],
+                'nilai_akhir_angka' => $row[$rowNilaiAkhirAngka],
+                'nilai_akhir_huruf' => $row[$rowNilaiAkhirHuruf],
+                'nilai_bobot' => (float) str_replace(',', '.', $row[$rowNilaiBobot]),
+                'outcome' => $row[$rowOutcome],
                 'is_terbaik' => $nilaiTerbaik,
             ];
 

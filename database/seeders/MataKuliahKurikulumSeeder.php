@@ -49,6 +49,7 @@ class MataKuliahKurikulumSeeder extends Seeder
             ['kode' => 'LTEL6401', 'nama' => 'Desain Konservasi dan Efisiensi Energi', 'semester' => 'Pilihan', 'kategori' => 'Pilihan TTL', 'sks' => 2],
 
             ['kode' => 'PTEL6345', 'nama' => 'Sensor dan Aktuator', 'semester' => '5', 'kategori' => 'Wajib Konsentrasi Elektronika', 'sks' => 3],
+            ['kode' => 'PTEL6213', 'nama' => 'Dasar Elektronika', 'semester' => 3, 'kategori' => 'Wajib', 'sks' => 2],
         ];
 
         // Tambahkan 'kurikulum_id' ke setiap data
