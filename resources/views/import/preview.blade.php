@@ -190,10 +190,25 @@
     // Handle form submission
     const form = document.getElementById('confirm-form');
     const submitButton = document.getElementById('confirm-button');
+    const loadingModal = new bootstrap.Modal(document.getElementById('loading-modal'), {
+        backdrop: 'static',
+        keyboard: false
+    });
+
+    // Initialize loading modal
+    document.addEventListener('DOMContentLoaded', function() {
+        // Hide loading modal if it was somehow left open
+        loadingModal.hide();
+    });
 
     form.addEventListener('submit', function(e) {
+        // Prevent double submission
+        if (submitButton.disabled) {
+            e.preventDefault();
+            return false;
+        }
+
         // Show loading modal
-        const loadingModal = new bootstrap.Modal(document.getElementById('loading-modal'));
         loadingModal.show();
 
         // Disable button
