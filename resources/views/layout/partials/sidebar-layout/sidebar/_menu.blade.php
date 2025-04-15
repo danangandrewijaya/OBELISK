@@ -24,6 +24,18 @@
 							</span>
 							<span class="menu-title">Default</span>
 						</a>
+                        <a class="menu-link {{ request()->routeIs('report.mahasiswa.index') ? 'active' : '' }}" href="{{ route('report.mahasiswa.index') }}">
+                            <span class="menu-bullet">
+                                <span class="bullet bullet-dot"></span>
+                            </span>
+                            <span class="menu-title">Rapor CPL</span>
+                        </a>
+                        <a class="menu-link {{ request()->routeIs('report.matakuliah-semester.index') ? 'active' : '' }}" href="{{ route('report.matakuliah-semester.index') }}">
+                            <span class="menu-bullet">
+                                <span class="bullet bullet-dot"></span>
+                            </span>
+                            <span class="menu-title">Makul</span>
+                        </a>
 						<!--end:Menu link-->
 					</div>
 					<!--end:Menu item-->
@@ -41,7 +53,17 @@
 			</div>
 			<!--end:Menu item-->
 			<!--begin:Menu item-->
-			<div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('user-management.*') ? 'here show' : '' }}">
+			<div class="menu-item">
+				<!--begin:Menu link-->
+				<a class="menu-link {{ request()->routeIs('import.form') ? 'active' : '' }}" href="{{ route('import.form') }}">
+					<span class="menu-icon">{!! getIcon('rocket', 'fs-2') !!}</span>
+					<span class="menu-title">Import Excel</span>
+				</a>
+				<!--end:Menu link-->
+			</div>
+			<!--end:Menu item-->
+			<!--begin:Menu item-->
+			{{-- <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('user-management.*') ? 'here show' : '' }}">
 				<!--begin:Menu link-->
 				<span class="menu-link">
 					<span class="menu-icon">{!! getIcon('abstract-28', 'fs-2') !!}</span>
@@ -89,46 +111,7 @@
 					<!--end:Menu item-->
 				</div>
 				<!--end:Menu sub-->
-			</div>
-			<!--end:Menu item-->
-			<!--begin:Menu item-->
-			<div class="menu-item pt-5">
-				<!--begin:Menu content-->
-				<div class="menu-content">
-					<span class="menu-heading fw-bold text-uppercase fs-7">Help</span>
-				</div>
-				<!--end:Menu content-->
-			</div>
-			<!--end:Menu item-->
-			<!--begin:Menu item-->
-			<div class="menu-item">
-				<!--begin:Menu link-->
-				<a class="menu-link" href="https://preview.keenthemes.com/html/metronic/docs/base/utilities" target="_blank">
-					<span class="menu-icon">{!! getIcon('rocket', 'fs-2') !!}</span>
-					<span class="menu-title">Components</span>
-				</a>
-				<!--end:Menu link-->
-			</div>
-			<!--end:Menu item-->
-			<!--begin:Menu item-->
-			<div class="menu-item">
-				<!--begin:Menu link-->
-				<a class="menu-link" href="https://preview.keenthemes.com/laravel/metronic/docs" target="_blank">
-					<span class="menu-icon">{!! getIcon('abstract-26', 'fs-2') !!}</span>
-					<span class="menu-title">Documentation</span>
-				</a>
-				<!--end:Menu link-->
-			</div>
-			<!--end:Menu item-->
-			<!--begin:Menu item-->
-			<div class="menu-item">
-				<!--begin:Menu link-->
-				<a class="menu-link" href="https://preview.keenthemes.com/laravel/metronic/docs/changelog" target="_blank">
-					<span class="menu-icon">{!! getIcon('code', 'fs-2') !!}</span>
-					<span class="menu-title">Changelog v8.2.8</span>
-				</a>
-				<!--end:Menu link-->
-			</div>
+			</div> --}}
 			<!--end:Menu item-->
 		</div>
 		<!--end::Menu-->
