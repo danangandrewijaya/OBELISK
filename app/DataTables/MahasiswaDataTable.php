@@ -22,6 +22,9 @@ class MahasiswaDataTable extends DataTable
             ->addColumn('action', function (Mahasiswa $mahasiswa) {
                 return '<a href="' . route('report.mahasiswa.show', $mahasiswa) . '" class="btn btn-light btn-active-light-primary btn-flex btn-center btn-sm">View</a>';
             })
+            ->filterColumn('angkatan', function($query, $keyword) {
+                $query->where('angkatan', 'like', "%$keyword%");
+            })
             ->setRowId('id');
     }
 
@@ -45,10 +48,7 @@ class MahasiswaDataTable extends DataTable
             ->minifiedAjax()
             ->dom('rt' . "<'row'<'col-sm-12'tr>><'d-flex justify-content-between'<'col-sm-12 col-md-5'i><'d-flex justify-content-between'p>>",)
             ->addTableClass('table align-middle table-row-dashed fs-6 gy-5 dataTable no-footer text-gray-600 fw-semibold')
-            ->setTableHeadClass('text-start text-muted fw-bold fs-7 text-uppercase gs-0')
-            // ->orderBy(2)
-            // ->drawCallback("function() {" . file_get_contents(resource_path('views/pages/apps/user-management/users/columns/_draw-scripts.js')) . "}")
-            ;
+            ->setTableHeadClass('text-start text-muted fw-bold fs-7 text-uppercase gs-0');
     }
 
     /**
@@ -57,8 +57,9 @@ class MahasiswaDataTable extends DataTable
     public function getColumns(): array
     {
         return [
-            Column::make('nim')->title('NIM')->addClass('text-nowrap'),
+            Column::make('nim')->title('NIM')->addClass('text-nowrap text-start'),
             Column::make('nama')->title('Nama')->addClass('text-nowrap'),
+            Column::make('angkatan')->title('Angkatan')->addClass('text-nowrap text-start')->name('angkatan'),
             Column::make('prodi.nama')->title('Prodi')->addClass('text-nowrap'),
             Column::computed('action')
                 ->addClass('text-end text-nowrap')

@@ -73,7 +73,7 @@
             });
 
             document.getElementById('angkatanFilter').addEventListener('change', function () {
-                window.LaravelDataTables['mahasiswa-table'].column(3).search(this.value).draw();
+                window.LaravelDataTables['mahasiswa-table'].column('angkatan:name').search(this.value).draw();
             });
 
             document.addEventListener('livewire:init', function () {
