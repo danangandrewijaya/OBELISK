@@ -49,6 +49,8 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
                     'nim' => $nim,
                     'nama' => preg_replace('/\s*\(.*\)$/', '', $row[1]),
                     'prodi_id' => 1, // belum ada di excel
+                    'kurikulum_id' => 1, // sementara
+                    'angkatan' => 2000 + (int) substr($nim, 6, 2),
                 ]);
                 $mahasiswa = Mahasiswa::where('nim', $nim)->first();
             }
@@ -131,7 +133,7 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
                     $cpmkCplItem = $cpmk[$cpmkIndex2 - 1];
                     // Convert and validate nilai_bobot
                     $nilaiBobot = is_numeric($value) ? round((float) str_replace(',', '.', $value), 2) : 0;
-                    
+
                     NilaiCpmk::where([
                         'nilai_id' => $dbNilai->id,
                         'cpmk_id' => $cpmkCplItem->id,

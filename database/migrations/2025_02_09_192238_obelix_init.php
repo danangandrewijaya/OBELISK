@@ -99,6 +99,8 @@ return new class extends Migration {
             $table->string('nim', 15)->unique();
             $table->string('nama', 100);
             $table->foreignId('prodi_id')->constrained((new Prodi)->getTable())->onDelete('cascade');
+            $table->foreignId('kurikulum_id')->constrained((new Kurikulum)->getTable())->nullable();
+            $table->year('angkatan');
             $table->timestamps();
         });
 

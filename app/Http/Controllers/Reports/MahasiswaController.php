@@ -11,7 +11,12 @@ class MahasiswaController extends Controller
 {
     public function index(MahasiswaDataTable $dataTable)
     {
-        return $dataTable->render('report.mahasiswa.list');
+        $angkatanList = Mahasiswa::select('angkatan')
+            ->distinct()
+            ->orderBy('angkatan', 'desc')
+            ->pluck('angkatan');
+
+        return $dataTable->render('report.mahasiswa.list', compact('angkatanList'));
     }
 
     public function show(Mahasiswa $mahasiswa)

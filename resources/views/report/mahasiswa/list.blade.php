@@ -14,11 +14,22 @@
             <!--begin::Card title-->
             <div class="card-title">
                 <!--begin::Search-->
-                <div class="d-flex align-items-center position-relative my-1">
+                <div class="d-flex align-items-center position-relative my-1 me-2">
                     {!! getIcon('magnifier', 'fs-3 position-absolute ms-5') !!}
                     <input type="text" data-kt-user-table-filter="search" class="form-control form-control-solid w-250px ps-13" placeholder="Search" id="mySearchInput"/>
                 </div>
                 <!--end::Search-->
+
+                <!--begin::Angkatan filter-->
+                <div class="d-flex align-items-center position-relative my-1">
+                    <select class="form-select form-select-solid w-200px" id="angkatanFilter">
+                        <option value="">Semua Angkatan</option>
+                        @foreach($angkatanList as $angkatan)
+                            <option value="{{ $angkatan }}">Angkatan {{ $angkatan }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <!--end::Angkatan filter-->
             </div>
             <!--begin::Card title-->
 
@@ -58,12 +69,17 @@
         {{ $dataTable->scripts() }}
         <script>
             document.getElementById('mySearchInput').addEventListener('keyup', function () {
-                window.LaravelDataTables['users-table'].search(this.value).draw();
+                window.LaravelDataTables['mahasiswa-table'].search(this.value).draw();
             });
+
+            document.getElementById('angkatanFilter').addEventListener('change', function () {
+                window.LaravelDataTables['mahasiswa-table'].column(3).search(this.value).draw();
+            });
+
             document.addEventListener('livewire:init', function () {
                 Livewire.on('success', function () {
                     $('#kt_modal_add_user').modal('hide');
-                    window.LaravelDataTables['users-table'].ajax.reload();
+                    window.LaravelDataTables['mahasiswa-table'].ajax.reload();
                 });
             });
             $('#kt_modal_add_user').on('hidden.bs.modal', function () {
