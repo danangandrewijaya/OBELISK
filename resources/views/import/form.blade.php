@@ -20,6 +20,18 @@
                     <input type="file" name="file" id="file" accept=".xlsx,.xls" class="form-control form-control-solid">
                 </div>
 
+                <div class="mb-5">
+                    <label class="form-label required" for="pengampu_ids">Pilih Pengampu</label>
+                    <select name="pengampu_ids[]" id="pengampu_ids" class="form-select form-select-solid" multiple="multiple" data-control="select2" data-placeholder="Pilih pengampu...">
+                        @foreach ($dosens as $dosen)
+                            <option value="{{ $dosen->id }}">{{ $dosen->nama }} {{ $dosen->nip ? '(' . $dosen->nip . ')' : '' }}</option>
+                        @endforeach
+                    </select>
+                    @if($errors->has('pengampu_ids'))
+                        <div class="text-danger mt-2">{{ $errors->first('pengampu_ids') }}</div>
+                    @endif
+                </div>
+
                 {{-- <div class="mb-5">
                     <label class="form-label required" for="file">Pilih Kurikulum</label>
                     <select name="kurikulum" id="kurikulum" class="form-select form-select-solid">
@@ -94,6 +106,15 @@
             keyboard: false
         });
 
+        // Initialize Select2
+        $(document).ready(function() {
+            $('#pengampu_ids').select2({
+                dropdownParent: $('#import-form'),
+                allowClear: true,
+                closeOnSelect: false
+            });
+        });
+
         // Initialize loading modal
         document.addEventListener('DOMContentLoaded', function() {
             // Hide loading modal if it was somehow left open
@@ -101,6 +122,47 @@
         });
 
         form.addEventListener('submit', function(e) {
+            // Validate required fields
+            const fileInput = document.getElementById('file');
+            const pengampuSelect = document.getElementById('pengampu_ids');
+            let hasError = false;
+
+            // Check if file is selected
+            if (fileInput.files.length === 0) {
+                fileInput.classList.add('is-invalid');
+                hasError = true;
+            } else {
+                fileInput.classList.remove('is-invalid');
+            }
+
+            // Check if at least one pengampu is selected
+            if (pengampuSelect.selectedOptions.length === 0) {
+                pengampuSelect.parentElement.classList.add('is-invalid');
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'text-danger mt-2';
+                errorDiv.innerText = 'Pilih minimal satu pengampu';
+
+                // Remove any existing error message first
+                const existingError = pengampuSelect.parentElement.nextElementSibling;
+                if (existingError && existingError.classList.contains('text-danger')) {
+                    existingError.remove();
+                }
+
+                pengampuSelect.parentElement.after(errorDiv);
+                hasError = true;
+            } else {
+                pengampuSelect.parentElement.classList.remove('is-invalid');
+                const existingError = pengampuSelect.parentElement.nextElementSibling;
+                if (existingError && existingError.classList.contains('text-danger')) {
+                    existingError.remove();
+                }
+            }
+
+            if (hasError) {
+                e.preventDefault();
+                return false;
+            }
+
             // Prevent double submission
             if (submitButton.disabled) {
                 e.preventDefault();
@@ -118,7 +180,7 @@
             setTimeout(function() {
                 submitButton.removeAttribute('data-kt-indicator');
                 submitButton.disabled = false;
-                
+
                 // Hide loading modal
                 loadingModal.hide();
             }, 60000);

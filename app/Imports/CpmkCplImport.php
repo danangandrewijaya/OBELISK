@@ -8,6 +8,7 @@ use App\Models\MataKuliahSemester;
 use App\Models\Cpmk;
 use App\Models\Cpl;
 use App\Models\CPMKCPL;
+use App\Models\Pengampu;
 use App\Imports\NilaiImport;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
@@ -19,10 +20,14 @@ use Maatwebsite\Excel\Exceptions\NoSheetsFoundException;
 class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesToOtherSheets, SkipsUnknownSheets
 {
     private $kurikulum;
+    private $previewOnly;
+    private $pengampuIds;
 
-    public function __construct($kurikulum)
+    public function __construct($kurikulum, $previewOnly = false, $pengampuIds = [])
     {
         $this->kurikulum = $kurikulum;
+        $this->previewOnly = $previewOnly;
+        $this->pengampuIds = $pengampuIds;
     }
 
     public function sheets(): array
@@ -50,22 +55,13 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
 
     public function collection(Collection $rows)
     {
-        // dd($rows);
-        // Ambil key cell
-        // foreach ($rows as $row) {
-        //     // Filter hanya indeks string kecuali "mata_kuliah"
-        //     $filteredKeys = array_keys(array_filter($row->toArray(), function($value, $key) {
-        //         return is_string($key) && $key !== 'mata_kuliah';
-        //     }, ARRAY_FILTER_USE_BOTH));
+        // Skip actual processing if this is preview only
+        if ($this->previewOnly) {
+            return;
+        }
 
-        //     // Ambil key pertama dari hasil filter
-        //     $cell2 = reset($filteredKeys);
-        // }
         $cell2 = 2;
         $mataKuliahKode = explode(' ', $rows[0][2])[0];
-
-        // dd($mataKuliahKode);
-        // dd($rows);
 
         $tahun         = substr($rows[1][$cell2], 0, 4); // 2024-2025 -> 2024
         $semester      = strtolower($rows[2][$cell2]) === 'genap' ? 2 : 1;
@@ -115,6 +111,20 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
 
         // Mata Kuliah Semester
         $mks = $this->getMataKuliahSemester($mataKuliahKode, $tahun, $semester, $pengampu, $koord_pengampu, $gpm);
+
+        // Assign selected pengampu to this MKS (if any)
+        if (!empty($this->pengampuIds)) {
+            // First clear existing pengampu associations for this mks
+            Pengampu::where('mks_id', $mks->id)->delete();
+
+            // Add new pengampu associations
+            foreach ($this->pengampuIds as $dosenId) {
+                Pengampu::create([
+                    'mks_id' => $mks->id,
+                    'dosen_id' => $dosenId
+                ]);
+            }
+        }
 
         // Proses kedua: Menyimpan CPMK - CPL (C19 hingga C32)
         $cpmkCpl = [];
@@ -182,7 +192,6 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
                 );
             }
         }
-        // dd($cpmkCpl); // Debug hasilnya
     }
 
     public function getMataKuliahSemester($mataKuliahKode, $tahun, $semester, $pengampu = null, $koord_pengampu = null, $gpm = null, $kaprodi = null)
@@ -201,7 +210,7 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
                 'mkk_id' => $mkk->id,
                 'tahun' => $tahun,
                 'semester' => $semester,
-                'pengampu_id' => $pengampu->id,
+                // 'pengampu_id' => $pengampu->id,
                 'koord_pengampu_id' => $koord_pengampu->id,
                 'gpm_id' => $gpm->id,
                 // 'kaprodi' => $kaprodi->id,

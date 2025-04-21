@@ -14,6 +14,40 @@
                         Berikut adalah preview data yang akan diimpor. Silakan periksa data berikut sebelum melanjutkan.
                     </div>
 
+                    @php
+                        $dosens = App\Models\Dosen::whereIn('id', $pengampu_ids)->get();
+                    @endphp
+
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4 class="card-title">Pengampu Terpilih</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Dosen</th>
+                                            <th>NIP/NIDN</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($dosens as $dosen)
+                                            <tr>
+                                                <td>{{ $dosen->nama }}</td>
+                                                <td>{{ $dosen->nip ?? 'N/A' }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="2" class="text-center">Tidak ada pengampu yang dipilih</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                     @foreach($preview as $sheetName => $sheetData)
 
                     @if($sheetName === 'CPMK-CPL' || $sheetName === 'FORM NILAI SIAP')
@@ -51,7 +85,7 @@
                                         <div class="col-md-6">
                                             <table class="table table-bordered">
                                                 <tr>
-                                                    <th width="200">Pengampu</th>
+                                                    <th width="200">Pengampu di Excel</th>
                                                     <td>{{ $sheetData[5][2] }}</td>
                                                 </tr>
                                                 <tr>
@@ -168,6 +202,10 @@
                         <input type="hidden" name="confirm" value="1">
                         {{-- <input type="hidden" name="kurikulum" value="{{ $kurikulum->id }}"> --}}
                         <input type="hidden" name="temp_file" value="{{ $tempFile }}">
+
+                        @foreach($pengampu_ids as $id)
+                            <input type="hidden" name="pengampu_ids[]" value="{{ $id }}">
+                        @endforeach
 
                         <div class="row">
                             <div class="col-12">

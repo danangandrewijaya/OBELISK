@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\CpmkCplImport;
 use App\Imports\CpmkImport;
+use App\Models\Dosen;
 use App\Models\Kurikulum;
 use App\Models\MataKuliahSemester;
 use Maatwebsite\Excel\Excel as ExcelFormat;
@@ -19,16 +20,23 @@ class ImportController extends Controller
     public function showImportForm()
     {
         $kurikulums = Kurikulum::all();
-        return view('import.form', compact('kurikulums'));
+        $dosens = Dosen::orderBy('nama')->get();
+        return view('import.form', compact('kurikulums', 'dosens'));
     }
 
     public function importExcel(Request $request)
     {
         $kurikulum = Kurikulum::find($request->kurikulum);
+        $pengampus = $request->pengampu_ids ?? [];
 
         try {
             $validator = Validator::make($request->all(), [
-                'file' => $request->has('confirm') ? 'nullable' : 'required|mimes:xlsx,xls|max:10240'
+                'file' => $request->has('confirm') ? 'nullable' : 'required|mimes:xlsx,xls|max:10240',
+                'pengampu_ids' => 'required|array|min:1',
+                'pengampu_ids.*' => 'exists:mst_dosen,id'
+            ], [
+                'pengampu_ids.required' => 'Pilihan pengampu wajib diisi',
+                'pengampu_ids.min' => 'Pilih minimal satu pengampu'
             ]);
 
             if ($validator->fails()) {
@@ -53,7 +61,8 @@ class ImportController extends Controller
                 return view('import.preview', [
                     'preview' => $preview,
                     'kurikulum' => $kurikulum,
-                    'tempFile' => $filePath
+                    'tempFile' => $filePath,
+                    'pengampu_ids' => $pengampus
                 ]);
             }
 
@@ -64,7 +73,7 @@ class ImportController extends Controller
             }
 
             $filePath = Storage::disk('public')->path($tempFile);
-            Excel::import(new CpmkCplImport($kurikulum, false), $filePath);
+            Excel::import(new CpmkCplImport($kurikulum, false, $pengampus), $filePath);
 
             // Clean up temp file
             Storage::disk('public')->delete($tempFile);
@@ -102,7 +111,6 @@ class ImportController extends Controller
 
     public function index(Request $request)
     {
-
         $mks = MataKuliahSemester::find(4);
         $cpmk_cpl = $mks->cpmk()->get()->flatten();
         dd($cpmk_cpl);
