@@ -7,7 +7,7 @@ use App\Models\MataKuliahKurikulum;
 use App\Models\MataKuliahSemester;
 use App\Models\Cpmk;
 use App\Models\Cpl;
-use App\Models\CPMKCPL;
+use App\Models\CpmkCpl;
 use App\Models\Pengampu;
 use App\Imports\NilaiImport;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -181,7 +181,7 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
                     throw new \Exception('CPL tidak ditemukan untuk kurikulum ini');
                 }
 
-                CPMKCPL::updateOrCreate(
+                CpmkCpl::updateOrCreate(
                     [
                         'cpmk_id' => $dbCpmk->id,
                         'cpl_id' => $cpl->id

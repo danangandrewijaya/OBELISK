@@ -14,11 +14,11 @@ class CpmkCpl extends Model
 
     public function cpmk()
     {
-        return $this->belongsTo(CPMK::class);
+        return $this->belongsTo(Cpmk::class);
     }
 
     public function cpl()
     {
-        return $this->belongsTo(CPL::class);
+        return $this->belongsTo(Cpl::class);
     }
 }
