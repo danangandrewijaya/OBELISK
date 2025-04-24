@@ -48,5 +48,6 @@ class DatabaseSeeder extends Seeder
 
         $this->call(MataKuliahKurikulumSeeder::class);
         $this->call(CplSeeder::class);
+        $this->call(DosenSeeder::class);
     }
 }
