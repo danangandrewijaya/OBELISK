@@ -18,6 +18,32 @@
                         $dosens = App\Models\Dosen::whereIn('id', $pengampu_ids)->get();
                     @endphp
 
+
+                    <!-- Tampilkan Pengampu dari File Excel (Session) -->
+                    @if(isset($pengampu_session) && $pengampu_session)
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4 class="card-title">Pengampu dari File Excel</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Nama Dosen</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>{{ $pengampu_session['nama'] }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
+
                     <div class="card mb-4">
                         <div class="card-header">
                             <h4 class="card-title">Pengampu Terpilih</h4>

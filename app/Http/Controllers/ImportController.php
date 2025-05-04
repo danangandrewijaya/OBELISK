@@ -84,10 +84,20 @@ class ImportController extends Controller
                     }
                 }
 
+                // Ambil data pengampu dari session untuk dibandingkan
+                $pengampuDariSession = null;
+                if (isset($_SESSION['preview']['pengampu_nama'])) {
+                    $pengampuDariSession = [
+                        'nama' => $_SESSION['preview']['pengampu_nama'],
+                        'nip' => $_SESSION['preview']['pengampu_nip']
+                    ];
+                }
+
                 return view('import.preview', [
                     'preview' => $previewData,
                     'tempFile' => $filePath,
-                    'pengampu_ids' => $pengampus
+                    'pengampu_ids' => $pengampus,
+                    'pengampu_session' => $pengampuDariSession
                 ]);
             }
 

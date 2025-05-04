@@ -134,13 +134,25 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
             if (is_null($nim)) {
                 return false;
             }
+
+            // Dapatkan kurikulum_id dari MataKuliahKurikulum yang terkait dengan MKS
+            $mkk = null;
+            $kurikulumId = 1; // Default jika tidak ditemukan
+
+            if ($mks && $mks->mkk_id) {
+                $mkk = MataKuliahKurikulum::find($mks->mkk_id);
+                if ($mkk) {
+                    $kurikulumId = $mkk->kurikulum_id;
+                }
+            }
+
             $mahasiswa = Mahasiswa::where('nim', $nim)->first();
             if (!$mahasiswa) {
                 $mahasiswa = Mahasiswa::create([
                     'nim' => $nim,
                     'nama' => preg_replace('/\s*\(.*\)$/', '', $row[1]),
                     'prodi_id' => 1, // belum ada di excel
-                    'kurikulum_id' => 1, // sementara
+                    'kurikulum_id' => $kurikulumId, // Menggunakan kurikulum_id dari MKK
                     'angkatan' => 2000 + (int) substr($nim, 6, 2),
                 ]);
 

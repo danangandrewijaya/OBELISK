@@ -126,14 +126,14 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
         $gpm_nip = $_SESSION['preview']['gpm_nip'];
 
         // Pengampu
-        $pengampu = Dosen::where('nip', $pengampu_nip)->first();
-        if (!$pengampu) {
-            // throw new \Exception('Dosen pengampu tidak ditemukan');
-            $pengampu = new Dosen();
-            $pengampu->nip = $pengampu_nip;
-            $pengampu->nama = $pengampu_nama;
-            $pengampu->save();
-        }
+        // $pengampu = Dosen::where('nip', $pengampu_nip)->first();
+        // if (!$pengampu) {
+        //     // throw new \Exception('Dosen pengampu tidak ditemukan');
+        //     $pengampu = new Dosen();
+        //     $pengampu->nip = $pengampu_nip;
+        //     $pengampu->nama = $pengampu_nama;
+        //     $pengampu->save();
+        // }
 
         // Koordinator Pengampu
         $koord_pengampu = Dosen::where('nip', $koord_pengampu_nip)->first();
