@@ -57,3 +57,29 @@ Breadcrumbs::for('user-management.permissions.index', function (BreadcrumbTrail 
     $trail->parent('user-management.index');
     $trail->push('Permissions', route('user-management.permissions.index'));
 });
+
+// Siklus
+Breadcrumbs::for('siklus.index', function (BreadcrumbTrail $trail) {
+    $trail->parent('dashboard');
+    $trail->push('Siklus', route('siklus.index'));
+});
+
+Breadcrumbs::for('siklus.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('siklus.index');
+    $trail->push('Tambah Siklus', route('siklus.create'));
+});
+
+Breadcrumbs::for('siklus.edit', function (BreadcrumbTrail $trail, $siklus) {
+    $trail->parent('siklus.index');
+    $trail->push('Edit Siklus', route('siklus.edit', $siklus));
+});
+
+Breadcrumbs::for('siklus.show', function (BreadcrumbTrail $trail, $siklus) {
+    $trail->parent('siklus.index');
+    $trail->push($siklus->nama, route('siklus.show', $siklus));
+});
+
+Breadcrumbs::for('siklus.configure', function (BreadcrumbTrail $trail, $siklus) {
+    $trail->parent('siklus.show', $siklus);
+    $trail->push('Konfigurasi', route('siklus.configure', $siklus));
+});

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Kurikulum;
 
 class MataKuliahKurikulum extends Model
 {
@@ -17,4 +18,9 @@ class MataKuliahKurikulum extends Model
         'kurikulum_id',
         'sks',
     ];
+    
+    public function kurikulum()
+    {
+        return $this->belongsTo(Kurikulum::class);
+    }
 }

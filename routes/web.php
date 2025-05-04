@@ -46,6 +46,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::get('/report/cpmk-cpl', [CpmkCplController::class, 'index'])->name('report.cpmk-cpl');
+
+    /*
+     * Siklus Routes
+     */
+    // Replace the resource route with explicit route definitions
+    // Route::resource('siklus', \App\Http\Controllers\SiklusController::class);
+    Route::get('siklus', [\App\Http\Controllers\SiklusController::class, 'index'])->name('siklus.index');
+    Route::get('siklus/create', [\App\Http\Controllers\SiklusController::class, 'create'])->name('siklus.create');
+    Route::post('siklus', [\App\Http\Controllers\SiklusController::class, 'store'])->name('siklus.store');
+    Route::get('siklus/{siklus}', [\App\Http\Controllers\SiklusController::class, 'show'])->name('siklus.show');
+    Route::get('siklus/{siklus}/edit', [\App\Http\Controllers\SiklusController::class, 'edit'])->name('siklus.edit');
+    Route::put('siklus/{siklus}', [\App\Http\Controllers\SiklusController::class, 'update'])->name('siklus.update');
+    Route::delete('siklus/{siklus}', [\App\Http\Controllers\SiklusController::class, 'destroy'])->name('siklus.destroy');
+
+    Route::get('siklus/{siklus}/configure', [\App\Http\Controllers\SiklusController::class, 'configure'])->name('siklus.configure');
+    Route::post('siklus/{siklus}/save-cpl-selections', [\App\Http\Controllers\SiklusController::class, 'saveCplSelections'])->name('siklus.save-cpl-selections');
 });
 
 Route::get('/error', function () {
