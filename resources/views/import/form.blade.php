@@ -32,16 +32,6 @@
                     @endif
                 </div>
 
-                {{-- <div class="mb-5">
-                    <label class="form-label required" for="file">Pilih Kurikulum</label>
-                    <select name="kurikulum" id="kurikulum" class="form-select form-select-solid">
-                        <option value="">--Pilih Kurikulum--</option>
-                        @foreach ($kurikulums as $kurikulum)
-                            <option value="{{ $kurikulum->id }}">{{ $kurikulum->nama }}</option>
-                        @endforeach
-                    </select>
-                </div> --}}
-
                 @if(session('success'))
                     <div class="alert alert-success d-flex align-items-center p-5 mb-5">
                         <span class="svg-icon svg-icon-2hx svg-icon-success me-4">

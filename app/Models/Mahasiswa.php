@@ -15,6 +15,8 @@ class Mahasiswa extends Model
         'nim',
         'nama',
         'prodi_id',
+        'angkatan',
+        'kurikulum_id',
     ];
 
     public function prodi()

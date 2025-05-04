@@ -62,43 +62,19 @@
                                             <table class="table table-bordered">
                                                 <tr>
                                                     <th width="200">Mata Kuliah</th>
-                                                    <td>{{ $sheetData[0][2] }}</td>
+                                                    <td>{{ $_SESSION['preview']['mata_kuliah_kode'] }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Tahun</th>
-                                                    <td>{{ $sheetData[1][2] }}</td>
+                                                    <td>{{ $_SESSION['preview']['tahun'] }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Semester</th>
-                                                    <td>{{ $sheetData[2][2] }}</td>
+                                                    <td>{{ $_SESSION['preview']['semester'] == 1 ? 'Ganjil' : 'Genap' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Kelas</th>
-                                                    <td>{{ $sheetData[3][2] }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>SKS</th>
-                                                    <td>{{ $sheetData[8][2] }}</td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <table class="table table-bordered">
-                                                <tr>
-                                                    <th width="200">Pengampu di Excel</th>
-                                                    <td>{{ $sheetData[5][2] }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Koordinator Pengampu</th>
-                                                    <td>{{ $sheetData[6][2] }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>Kaprodi</th>
-                                                    <td>{{ $sheetData[9][2] }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <th>GPM</th>
-                                                    <td>{{ $sheetData[11][2] }}</td>
+                                                    <td>{{ $_SESSION['preview']['kelas'] }}</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -115,15 +91,25 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach(array_slice($sheetData, 18, 14) as $row)
-                                                    @if(!empty($row[1]))
+                                                @if(isset($_SESSION['preview']['cpmk_cpl']))
+                                                    @foreach($_SESSION['preview']['cpmk_cpl'] as $cpmkCpl)
                                                         <tr>
-                                                            <td>{{ $row[1] }}</td>
-                                                            <td>{{ $row[2] }}</td>
-                                                            <td>{{ collect(array_slice($row, 3, 13))->search(fn($value) => $value == 1) !== false ? 'CPL' . (collect(array_slice($row, 3, 13))->search(fn($value) => $value == 1) + 1) : '-' }}</td>
+                                                            <td>{{ $cpmkCpl['kode'] }}</td>
+                                                            <td>{{ $cpmkCpl['deskripsi'] }}</td>
+                                                            <td>{{ $cpmkCpl['cpl_number'] ? 'CPL'.$cpmkCpl['cpl_number'] : '-' }}</td>
                                                         </tr>
-                                                    @endif
-                                                @endforeach
+                                                    @endforeach
+                                                @else
+                                                    @foreach(array_slice($sheetData, 18, 14) as $row)
+                                                        @if(!empty($row[1]))
+                                                            <tr>
+                                                                <td>{{ $row[1] }}</td>
+                                                                <td>{{ $row[2] }}</td>
+                                                                <td>{{ collect(array_slice($row, 3, 13))->search(fn($value) => $value == 1) !== false ? 'CPL' . (collect(array_slice($row, 3, 13))->search(fn($value) => $value == 1) + 1) : '-' }}</td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+                                                @endif
                                             </tbody>
                                         </table>
                                     </div>
@@ -134,19 +120,51 @@
                                             <table class="table table-bordered">
                                                 <tr>
                                                     <th>Mata Kuliah</th>
-                                                    <td>{{ explode(' ', $sheetData[0][1])[0] }}</td>
+                                                    <td>
+                                                        @if(isset($_SESSION['preview']['mata_kuliah_kode']))
+                                                            {{ $_SESSION['preview']['mata_kuliah_kode'] }}
+                                                        @elseif(isset($sheetData[0]) && isset($sheetData[0][1]))
+                                                            {{ explode(' ', $sheetData[0][1])[0] }}
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Tahun</th>
-                                                    <td>{{ substr($sheetData[1][1], 0, 4) }}</td>
+                                                    <td>
+                                                        @if(isset($_SESSION['preview']['tahun']))
+                                                            {{ $_SESSION['preview']['tahun'] }}
+                                                        @elseif(isset($sheetData[1]) && isset($sheetData[1][1]))
+                                                            {{ substr($sheetData[1][1], 0, 4) }}
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Semester</th>
-                                                    <td>{{ $sheetData[2][1] }}</td>
+                                                    <td>
+                                                        @if(isset($_SESSION['preview']['semester']))
+                                                            {{ $_SESSION['preview']['semester'] == 1 ? 'Ganjil' : 'Genap' }}
+                                                        @elseif(isset($sheetData[2]) && isset($sheetData[2][1]))
+                                                            {{ $sheetData[2][1] }}
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
                                                 </tr>
                                                 <tr>
                                                     <th>Kelas</th>
-                                                    <td>{{ $sheetData[3][1] }}</td>
+                                                    <td>
+                                                        @if(isset($_SESSION['preview']['kelas']))
+                                                            {{ $_SESSION['preview']['kelas'] }}
+                                                        @elseif(isset($sheetData[3]) && isset($sheetData[3][1]))
+                                                            {{ $sheetData[3][1] }}
+                                                        @else
+                                                            -
+                                                        @endif
+                                                    </td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -168,26 +186,41 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @php
-                                                    $rowNilaiAkhirAngka = strpos(strtolower($sheetData[6][8]), 'nilai akhir angka') === 0 ? 8 : 10;
-                                                    $rowNilaiAkhirHuruf = $rowNilaiAkhirAngka + 1;
-                                                    $rowNilaiBobot = $rowNilaiAkhirHuruf + 1;
-                                                    $rowOutcome = $rowNilaiBobot + 1;
-                                                @endphp
-                                                @foreach(array_slice($sheetData, 7) as $row)
-                                                    @if(!empty($row[0]))
+                                                @if(isset($_SESSION['preview']['nilai_mahasiswa']))
+                                                    @foreach($_SESSION['preview']['nilai_mahasiswa'] as $nilai)
                                                         <tr>
-                                                            <td>{{ $row[0] }}</td>
-                                                            <td>{{ $row[1] }}</td>
-                                                            <td>{{ $row[2] }}</td>
-                                                            <td>{{ $row[3] }}</td>
-                                                            <td>{{ $row[$rowNilaiAkhirAngka] }}</td>
-                                                            <td>{{ $row[$rowNilaiAkhirHuruf] }}</td>
-                                                            <td>{{ str_replace(',', '.', $row[$rowNilaiBobot]) }}</td>
-                                                            <td>{{ $row[$rowOutcome] }}</td>
+                                                            <td>{{ $nilai['nim'] }}</td>
+                                                            <td>{{ $nilai['nama'] }}</td>
+                                                            <td>{{ $nilai['semester'] }}</td>
+                                                            <td>{{ $nilai['status'] }}</td>
+                                                            <td>{{ $nilai['nilai_akhir_angka'] }}</td>
+                                                            <td>{{ $nilai['nilai_akhir_huruf'] }}</td>
+                                                            <td>{{ $nilai['nilai_bobot'] }}</td>
+                                                            <td>{{ $nilai['outcome'] }}</td>
                                                         </tr>
-                                                    @endif
-                                                @endforeach
+                                                    @endforeach
+                                                @else
+                                                    @php
+                                                        $rowNilaiAkhirAngka = strpos(strtolower($sheetData[6][8]), 'nilai akhir angka') === 0 ? 8 : 10;
+                                                        $rowNilaiAkhirHuruf = $rowNilaiAkhirAngka + 1;
+                                                        $rowNilaiBobot = $rowNilaiAkhirHuruf + 1;
+                                                        $rowOutcome = $rowNilaiBobot + 1;
+                                                    @endphp
+                                                    @foreach(array_slice($sheetData, 7) as $row)
+                                                        @if(!empty($row[0]))
+                                                            <tr>
+                                                                <td>{{ $row[0] }}</td>
+                                                                <td>{{ $row[1] }}</td>
+                                                                <td>{{ $row[2] }}</td>
+                                                                <td>{{ $row[3] }}</td>
+                                                                <td>{{ $row[$rowNilaiAkhirAngka] }}</td>
+                                                                <td>{{ $row[$rowNilaiAkhirHuruf] }}</td>
+                                                                <td>{{ str_replace(',', '.', $row[$rowNilaiBobot]) }}</td>
+                                                                <td>{{ $row[$rowOutcome] }}</td>
+                                                            </tr>
+                                                        @endif
+                                                    @endforeach
+                                                @endif
                                             </tbody>
                                         </table>
                                     </div>
@@ -200,7 +233,6 @@
                     <form action="{{ route('import.excel') }}" method="POST" enctype="multipart/form-data" class="mt-4" id="confirm-form">
                         @csrf
                         <input type="hidden" name="confirm" value="1">
-                        {{-- <input type="hidden" name="kurikulum" value="{{ $kurikulum->id }}"> --}}
                         <input type="hidden" name="temp_file" value="{{ $tempFile }}">
 
                         @foreach($pengampu_ids as $id)
