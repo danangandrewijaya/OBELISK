@@ -243,9 +243,22 @@ class ImportController extends Controller
             } catch (\Exception $e) {
                 // Roll back transaction jika gagal
                 \DB::rollback();
+
+                // Still try to delete the temporary file even if import failed
+                if ($tempFile && Storage::disk('public')->exists($tempFile)) {
+                    Storage::disk('public')->delete($tempFile);
+                    \Log::info("Deleted temporary file {$tempFile} after import error");
+                }
+
                 throw $e;
             }
         } catch (\Exception $e) {
+            // Additional attempt to clean up temp file in outer exception handler
+            if (isset($tempFile) && Storage::disk('public')->exists($tempFile)) {
+                Storage::disk('public')->delete($tempFile);
+                \Log::info("Deleted temporary file {$tempFile} in outer exception handler");
+            }
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
