@@ -16,8 +16,8 @@
             <form id="import-form" action="{{ route('import.preview') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-5">
-                    <label class="form-label required" for="file">Pilih file Excel</label>
-                    <input type="file" name="file" id="file" accept=".xlsx,.xls" class="form-control form-control-solid">
+                    <label class="form-label required" for="excel_file">Pilih file Excel</label>
+                    <input type="file" name="excel_file" id="excel_file" accept=".xlsx,.xls" class="form-control form-control-solid">
                 </div>
 
                 <div class="mb-5">
@@ -113,7 +113,7 @@
 
         form.addEventListener('submit', function(e) {
             // Validate required fields
-            const fileInput = document.getElementById('file');
+            const fileInput = document.getElementById('excel_file');
             const pengampuSelect = document.getElementById('pengampu_ids');
             let hasError = false;
 

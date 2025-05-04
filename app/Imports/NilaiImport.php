@@ -11,6 +11,7 @@ use App\Models\MataKuliahSemester;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
+use Illuminate\Support\Facades\Session;
 
 class NilaiImport implements ToCollection, WithCalculatedFormulas
 {
@@ -23,16 +24,17 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
 
     public function collection(Collection $rows)
     {
-        // Pastikan session preview tersedia
-        if (!isset($_SESSION['preview']) || empty($_SESSION['preview'])) {
-            throw new \Exception('Preview data not found in session');
+        // Pastikan session tersedia
+        if (!Session::has('import_preview_data')) {
+            throw new \Exception('Import data not found in session');
         }
 
-        // Ambil data dari session
-        $mataKuliahKode = $_SESSION['preview']['mata_kuliah_kode'];
-        $tahun = $_SESSION['preview']['tahun'];
-        $semester = $_SESSION['preview']['semester'];
-        $kelas = $_SESSION['preview']['kelas'];
+        // Ambil data dari session Laravel
+        $importData = Session::get('import_preview_data');
+        $mataKuliahKode = $importData['mata_kuliah_kode'] ?? null;
+        $tahun = $importData['tahun'] ?? null;
+        $semester = $importData['semester'] ?? null;
+        $kelas = $importData['kelas'] ?? null;
 
         // Extract grade data for session storage
         $rowNilaiAkhirAngka = strpos(strtolower($rows[6][8]), 'nilai akhir angka') === 0 ? 8 : 10;
@@ -41,7 +43,7 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
         $rowOutcome = $rowNilaiBobot + 1;
 
         // Get CPMK details from session for row mapping
-        $cpmkData = $_SESSION['preview']['cpmk_cpl'] ?? [];
+        $cpmkData = $importData['cpmk_cpl'] ?? [];
 
         $nilaiData = [];
         $nilaiCpmkData = []; // To store individual CPMK grades
@@ -102,17 +104,21 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
             }
         });
 
-        // Store the grade data in session
-        if (isset($_SESSION['preview'])) {
-            $_SESSION['preview']['nilai_mahasiswa'] = $nilaiData;
-            $_SESSION['preview']['nilai_cpmk'] = $nilaiCpmkData; // Store CPMK grades by student NIM
-            $_SESSION['preview']['nilai_struktur'] = [
-                'row_nilai_akhir_angka' => $rowNilaiAkhirAngka,
-                'row_nilai_akhir_huruf' => $rowNilaiAkhirHuruf,
-                'row_nilai_bobot' => $rowNilaiBobot,
-                'row_outcome' => $rowOutcome
-            ];
-        }
+        // Update the session with one consolidated array
+        $importData['nilai_mahasiswa'] = $nilaiData;
+        $importData['nilai_cpmk'] = $nilaiCpmkData; // Store CPMK grades by student NIM
+        $importData['nilai_struktur'] = [
+            'row_nilai_akhir_angka' => $rowNilaiAkhirAngka,
+            'row_nilai_akhir_huruf' => $rowNilaiAkhirHuruf,
+            'row_nilai_bobot' => $rowNilaiBobot,
+            'row_outcome' => $rowOutcome
+        ];
+
+        // Simpan ke session dengan key yang seragam
+        Session::put('import_preview_data', $importData);
+        Session::save(); // Ensure session is written immediately
+
+        \Log::info('NilaiImport: Successfully saved import data to session with key import_preview_data');
 
         // Skip actual processing if this is preview only
         if ($this->previewOnly) {

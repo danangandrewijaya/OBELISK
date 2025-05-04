@@ -16,6 +16,7 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\HasReferencesToOtherSheets;
 use Maatwebsite\Excel\Concerns\SkipsUnknownSheets;
 use Maatwebsite\Excel\Exceptions\NoSheetsFoundException;
+use Illuminate\Support\Facades\Session;
 
 class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesToOtherSheets, SkipsUnknownSheets
 {
@@ -87,8 +88,8 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
             }
         }
 
-        // Selalu simpan data ke session terlepas dari mode preview atau import sesungguhnya
-        $_SESSION['preview'] = [
+        // Gunakan satu session key yang konsisten untuk semua data preview
+        $previewData = [
             'mata_kuliah_kode' => $mataKuliahKode,
             'tahun' => substr($rows[1][$cell2], 0, 4), // 2024-2025 -> 2024
             'semester' => strtolower($rows[2][$cell2]) === 'genap' ? 2 : 1,
@@ -105,35 +106,37 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
             'cpmk_cpl' => $cpmkCplData, // Save CPMK-CPL data in session
         ];
 
+        // Simpan data ke session dengan menggunakan facade dan helper
+        // Menggunakan multiple pendekatan untuk memastikan data tersimpan
+        app('session')->put('import_preview_data', $previewData);
+        \Session::put('import_preview_data', $previewData);
+        session(['import_preview_data' => $previewData]);
+
+        // Force write the session data to storage
+        app('session')->save();
+        \Session::save();
+
+        // Debug log untuk verifikasi
+        \Log::info('CpmkCplImport: Successfully saved import data to session with key import_preview_data');
+
         // Skip actual processing if this is preview only
         if ($this->previewOnly) {
             return;
         }
 
         // Proses pertama: Menyimpan data dari C1 - C13 (Identitas Mata Kuliah)
-        // Gunakan data dari session untuk proses impor, bukan dari file Excel lagi
-        $tahun = $_SESSION['preview']['tahun'];
-        $semester = $_SESSION['preview']['semester'];
-        $kelas = $_SESSION['preview']['kelas'];
-        $pengampu_nama = $_SESSION['preview']['pengampu_nama'];
-        $pengampu_nip = $_SESSION['preview']['pengampu_nip'];
-        $koord_pengampu_nama = $_SESSION['preview']['koord_pengampu_nama'];
-        $koord_pengampu_nip = $_SESSION['preview']['koord_pengampu_nip'];
-        $sks = $_SESSION['preview']['sks'];
-        $kaprodi_nama = $_SESSION['preview']['kaprodi_nama'];
-        $kaprodi_nip = $_SESSION['preview']['kaprodi_nip'];
-        $gpm_nama = $_SESSION['preview']['gpm_nama'];
-        $gpm_nip = $_SESSION['preview']['gpm_nip'];
-
-        // Pengampu
-        // $pengampu = Dosen::where('nip', $pengampu_nip)->first();
-        // if (!$pengampu) {
-        //     // throw new \Exception('Dosen pengampu tidak ditemukan');
-        //     $pengampu = new Dosen();
-        //     $pengampu->nip = $pengampu_nip;
-        //     $pengampu->nama = $pengampu_nama;
-        //     $pengampu->save();
-        // }
+        $tahun = $previewData['tahun'];
+        $semester = $previewData['semester'];
+        $kelas = $previewData['kelas'];
+        $pengampu_nama = $previewData['pengampu_nama'];
+        $pengampu_nip = $previewData['pengampu_nip'];
+        $koord_pengampu_nama = $previewData['koord_pengampu_nama'];
+        $koord_pengampu_nip = $previewData['koord_pengampu_nip'];
+        $sks = $previewData['sks'];
+        $kaprodi_nama = $previewData['kaprodi_nama'];
+        $kaprodi_nip = $previewData['kaprodi_nip'];
+        $gpm_nama = $previewData['gpm_nama'];
+        $gpm_nip = $previewData['gpm_nip'];
 
         // Koordinator Pengampu
         $koord_pengampu = Dosen::where('nip', $koord_pengampu_nip)->first();
@@ -156,7 +159,7 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
         }
 
         // Mata Kuliah Semester
-        $mks = $this->getMataKuliahSemester($mataKuliahKode, $tahun, $semester, $pengampu, $koord_pengampu, $gpm);
+        $mks = $this->getMataKuliahSemester($mataKuliahKode, $tahun, $semester, $koord_pengampu, $gpm);
 
         // Assign selected pengampu to this MKS (if any)
         if (!empty($this->pengampuIds)) {
@@ -243,19 +246,19 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
         }
     }
 
-    public function getMataKuliahSemester($mataKuliahKode, $tahun, $semester, $pengampu = null, $koord_pengampu = null, $gpm = null, $kaprodi = null)
+    public function getMataKuliahSemester($mataKuliahKode, $tahun, $semester, $koord_pengampu = null, $gpm = null, $kaprodi = null)
     {
         $mkk = MataKuliahKurikulum::whereRaw('LOWER(kode) = ?', [strtolower($mataKuliahKode)])->first();
         if (!$mkk) {
             throw new \Exception('Mata kuliah kurikulum tidak ditemukan');
         }
 
-        $mks = MataKuliahSemester::where('mkk_id', $mkk->id)->where('tahun', $tahun)->where('semester', $semester)->first();
-        if (!$mks) {
-            // if(!$pengampu && !$koord_pengampu) {
-            //     throw new \Exception('Mata kuliah semester tidak ditemukan dan pengampu/koordinator pengampu tidak tersedia');
-            // }
+        $mks = MataKuliahSemester::where('mkk_id', $mkk->id)
+                                 ->where('tahun', $tahun)
+                                 ->where('semester', $semester)
+                                 ->first();
 
+        if (!$mks) {
             // Make sure koord_pengampu and gpm are not null before accessing their id
             $koord_pengampu_id = $koord_pengampu ? $koord_pengampu->id : null;
             $gpm_id = $gpm ? $gpm->id : null;
@@ -264,10 +267,8 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
                 'mkk_id' => $mkk->id,
                 'tahun' => $tahun,
                 'semester' => $semester,
-                // 'pengampu_id' => $pengampu ? $pengampu->id : null,
                 'koord_pengampu_id' => $koord_pengampu_id,
                 'gpm_id' => $gpm_id,
-                // 'kaprodi' => $kaprodi ? $kaprodi->id : null,
             ]);
         }
 

@@ -16,6 +16,15 @@
 
                     @php
                         $dosens = App\Models\Dosen::whereIn('id', $pengampu_ids)->get();
+
+                        // Helper function untuk mengambil data dari session yang sudah diseragamkan
+                        function getSessionData($key, $default = null) {
+                            // Hanya menggunakan key yang seragam - import_preview_data
+                            if (session()->has('import_preview_data.' . $key)) {
+                                return session('import_preview_data.' . $key);
+                            }
+                            return $default;
+                        }
                     @endphp
 
 
@@ -88,19 +97,19 @@
                                             <table class="table table-bordered">
                                                 <tr>
                                                     <th width="200">Mata Kuliah</th>
-                                                    <td>{{ $_SESSION['preview']['mata_kuliah_kode'] }}</td>
+                                                    <td>{{ getSessionData('mata_kuliah_kode') }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Tahun</th>
-                                                    <td>{{ $_SESSION['preview']['tahun'] }}</td>
+                                                    <td>{{ getSessionData('tahun') }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Semester</th>
-                                                    <td>{{ $_SESSION['preview']['semester'] == 1 ? 'Ganjil' : 'Genap' }}</td>
+                                                    <td>{{ getSessionData('semester') == 1 ? 'Ganjil' : 'Genap' }}</td>
                                                 </tr>
                                                 <tr>
                                                     <th>Kelas</th>
-                                                    <td>{{ $_SESSION['preview']['kelas'] }}</td>
+                                                    <td>{{ getSessionData('kelas') }}</td>
                                                 </tr>
                                             </table>
                                         </div>
@@ -117,8 +126,12 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @if(isset($_SESSION['preview']['cpmk_cpl']))
-                                                    @foreach($_SESSION['preview']['cpmk_cpl'] as $cpmkCpl)
+                                                @php
+                                                    $cpmkCplData = getSessionData('cpmk_cpl');
+                                                @endphp
+
+                                                @if($cpmkCplData)
+                                                    @foreach($cpmkCplData as $cpmkCpl)
                                                         <tr>
                                                             <td>{{ $cpmkCpl['kode'] }}</td>
                                                             <td>{{ $cpmkCpl['deskripsi'] }}</td>
@@ -147,8 +160,8 @@
                                                 <tr>
                                                     <th>Mata Kuliah</th>
                                                     <td>
-                                                        @if(isset($_SESSION['preview']['mata_kuliah_kode']))
-                                                            {{ $_SESSION['preview']['mata_kuliah_kode'] }}
+                                                        @if(getSessionData('mata_kuliah_kode'))
+                                                            {{ getSessionData('mata_kuliah_kode') }}
                                                         @elseif(isset($sheetData[0]) && isset($sheetData[0][1]))
                                                             {{ explode(' ', $sheetData[0][1])[0] }}
                                                         @else
@@ -159,8 +172,8 @@
                                                 <tr>
                                                     <th>Tahun</th>
                                                     <td>
-                                                        @if(isset($_SESSION['preview']['tahun']))
-                                                            {{ $_SESSION['preview']['tahun'] }}
+                                                        @if(getSessionData('tahun'))
+                                                            {{ getSessionData('tahun') }}
                                                         @elseif(isset($sheetData[1]) && isset($sheetData[1][1]))
                                                             {{ substr($sheetData[1][1], 0, 4) }}
                                                         @else
@@ -171,8 +184,8 @@
                                                 <tr>
                                                     <th>Semester</th>
                                                     <td>
-                                                        @if(isset($_SESSION['preview']['semester']))
-                                                            {{ $_SESSION['preview']['semester'] == 1 ? 'Ganjil' : 'Genap' }}
+                                                        @if(getSessionData('semester') !== null)
+                                                            {{ getSessionData('semester') == 1 ? 'Ganjil' : 'Genap' }}
                                                         @elseif(isset($sheetData[2]) && isset($sheetData[2][1]))
                                                             {{ $sheetData[2][1] }}
                                                         @else
@@ -183,8 +196,8 @@
                                                 <tr>
                                                     <th>Kelas</th>
                                                     <td>
-                                                        @if(isset($_SESSION['preview']['kelas']))
-                                                            {{ $_SESSION['preview']['kelas'] }}
+                                                        @if(getSessionData('kelas'))
+                                                            {{ getSessionData('kelas') }}
                                                         @elseif(isset($sheetData[3]) && isset($sheetData[3][1]))
                                                             {{ $sheetData[3][1] }}
                                                         @else
@@ -212,8 +225,12 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @if(isset($_SESSION['preview']['nilai_mahasiswa']))
-                                                    @foreach($_SESSION['preview']['nilai_mahasiswa'] as $nilai)
+                                                @php
+                                                    $nilaiMahasiswaData = getSessionData('nilai_mahasiswa');
+                                                @endphp
+
+                                                @if($nilaiMahasiswaData)
+                                                    @foreach($nilaiMahasiswaData as $nilai)
                                                         <tr>
                                                             <td>{{ $nilai['nim'] }}</td>
                                                             <td>{{ $nilai['nama'] }}</td>

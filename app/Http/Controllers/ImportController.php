@@ -35,43 +35,50 @@ class ImportController extends Controller
     }
 
     /**
-     * Memproses file upload dan menampilkan preview data yang akan diimpor
+     * Menampilkan halaman preview dari data yang diimport
      */
     public function previewImport(Request $request)
     {
         if ($request->isMethod('get')) {
-            // Saat metode GET, periksa apakah data preview tersedia di Laravel session
-            if (!$request->session()->has('preview_data')) {
+            // Saat metode GET, periksa apakah data preview tersedia di session
+            if (!$request->session()->has('import_preview_data')) {
+                \Log::warning('GET Preview - No import_preview_data found in session');
                 return redirect()->route('import.form')->with('error', 'Data preview tidak ditemukan. Silakan upload ulang.');
             }
 
-            $previewData = $request->session()->get('preview_data');
+            $previewData = $request->session()->get('import_preview_data');
             $tempFile = $request->session()->get('temp_file');
             $pengampus = $request->session()->get('pengampu_ids', []);
             $pengampuSession = $request->session()->get('pengampu_session');
-            
-            // Jika di Laravel session tidak ada $_SESSION['preview'], gunakan data dari Laravel session
-            if (!isset($_SESSION['preview']) && $request->session()->has('preview_complete')) {
-                $_SESSION['preview'] = $request->session()->get('preview_complete');
-            }
+
+            // Format preview data untuk tampilan
+            $preview = [
+                'CPMK-CPL' => $previewData,
+                'FORM NILAI SIAP' => $previewData  // Include the same data for both sheets
+            ];
+
+            \Log::info('GET Preview - Successfully loaded preview data: ' . json_encode(array_keys($previewData)));
 
             return view('import.preview', [
-                'preview' => $previewData,
+                'preview' => $preview,
                 'tempFile' => $tempFile,
                 'pengampu_ids' => $pengampus,
                 'pengampu_session' => $pengampuSession
             ]);
         }
 
-        // Logika POST tetap seperti sebelumnya
+        // Logika POST untuk memproses upload file
         $pengampus = $request->pengampu_ids ?? [];
 
         try {
             $validator = Validator::make($request->all(), [
-                'file' => 'required|mimes:xlsx,xls|max:10240',
+                'excel_file' => 'required|mimes:xlsx,xls|max:10240',
                 'pengampu_ids' => 'required|array|min:1',
                 'pengampu_ids.*' => 'exists:mst_dosen,id'
             ], [
+                'excel_file.required' => 'File Excel wajib diunggah',
+                'excel_file.mimes' => 'File harus berformat Excel (.xlsx atau .xls)',
+                'excel_file.max' => 'Ukuran file maksimal 10MB',
                 'pengampu_ids.required' => 'Pilihan pengampu wajib diisi',
                 'pengampu_ids.min' => 'Pilih minimal satu pengampu'
             ]);
@@ -86,60 +93,85 @@ class ImportController extends Controller
                 return back()->withErrors($validator);
             }
 
-            $file = $request->file('file');
+            // Proses file Excel
+            $file = $request->file('excel_file');
+            if (!$file) {
+                \Log::error('POST Preview - No file in request');
+                throw new \Exception('File tidak ditemukan dalam request.');
+            }
+
             $fileName = $file->getClientOriginalName();
             $filePath = $file->storeAs('temp', $fileName, 'public');
+            \Log::debug('POST Preview - Stored file at: ' . $filePath);
 
+            // Import Excel dan simpan data sesi
+            \Log::debug('POST Preview - Starting Excel import process');
             $importer = new CpmkCplImport(true);
             Excel::import($importer, storage_path('app/public/' . $filePath));
 
-            if (isset($_SESSION['preview'])) {
-                // Simpan data dari $_SESSION ke Laravel session
-                $request->session()->put('preview_data', $_SESSION['preview']);
-                $request->session()->put('preview_complete', $_SESSION['preview']);
-                
-                // Simpan data pengampu dari Excel
-                $pengampuSession = null;
-                if (isset($_SESSION['preview']['pengampu_nama'])) {
-                    $pengampuSession = [
-                        'nama' => $_SESSION['preview']['pengampu_nama'],
-                        'nip' => $_SESSION['preview']['pengampu_nip'] ?? '-'
-                    ];
-                    $request->session()->put('pengampu_session', $pengampuSession);
+            // Verifikasi data session setelah import
+            \Log::debug('POST Preview - Session keys after import: ' . json_encode(array_keys($request->session()->all())));
+
+            // Periksa apakah data preview berhasil disimpan di session
+            if (!$request->session()->has('import_preview_data')) {
+                \Log::error('POST Preview - Failed to store import_preview_data in session');
+
+                // Coba simpan ulang data session secara manual
+                $request->session()->put('import_preview_data', [
+                    'mata_kuliah_kode' => 'MANUAL_RECOVERY',
+                    'tahun' => date('Y'),
+                    'semester' => 1,
+                    'kelas' => 'A',
+                    'error_recovery' => true
+                ]);
+                $request->session()->save();
+
+                if (!$request->session()->has('import_preview_data')) {
+                    \Log::critical('POST Preview - Critical session error, even manual recovery failed');
+                    throw new \Exception('Gagal menyimpan data ke session. Coba periksa konfigurasi session di server Anda.');
+                } else {
+                    \Log::warning('POST Preview - Manual recovery succeeded but original import failed');
+                    throw new \Exception('Data import tidak berhasil diproses dengan benar. Silakan coba lagi atau hubungi administrator.');
                 }
             }
 
-            $reader = IOFactory::createReader('Xlsx');
-            $spreadsheet = $reader->load(storage_path('app/public/' . $filePath));
-            $previewData = [];
+            // Ambil data preview dari session
+            $previewData = $request->session()->get('import_preview_data');
+            \Log::info('POST Preview - Successfully retrieved preview data from session');
 
-            foreach (['CPMK-CPL', 'FORM NILAI SIAP'] as $sheetName) {
-                if ($spreadsheet->getSheetByName($sheetName)) {
-                    $worksheet = $spreadsheet->getSheetByName($sheetName);
-                    $sheetArray = $worksheet->toArray(null, true, true, true);
-                    $previewData[$sheetName] = array_values($sheetArray);
-                }
-            }
-
+            // Simpan data lain yang diperlukan di session
             $request->session()->put('temp_file', $filePath);
             $request->session()->put('pengampu_ids', $pengampus);
 
-            // Tambahkan data pengampu dari session untuk POST
+            // Persiapkan data pengampu untuk tampilan
             $pengampuSession = null;
-            if (isset($_SESSION['preview']['pengampu_nama'])) {
+            if (isset($previewData['pengampu_nama'])) {
                 $pengampuSession = [
-                    'nama' => $_SESSION['preview']['pengampu_nama'],
-                    'nip' => $_SESSION['preview']['pengampu_nip'] ?? '-'
+                    'nama' => $previewData['pengampu_nama'],
+                    'nip' => $previewData['pengampu_nip'] ?? '-'
                 ];
+                $request->session()->put('pengampu_session', $pengampuSession);
             }
 
+            // Format data preview untuk tampilan
+            $preview = [
+                'CPMK-CPL' => $previewData,
+                'FORM NILAI SIAP' => $previewData  // Include nilai data in preview
+            ];
+            \Log::info('POST Preview - Rendering preview view with data');
+
+            // Pastikan session disimpan sebelum merender view
+            $request->session()->save();
+
             return view('import.preview', [
-                'preview' => $previewData,
+                'preview' => $preview,
                 'tempFile' => $filePath,
                 'pengampu_ids' => $pengampus,
                 'pengampu_session' => $pengampuSession
             ]);
         } catch (\Exception $e) {
+            \Log::error('POST Preview - Exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
@@ -151,39 +183,54 @@ class ImportController extends Controller
     }
 
     /**
-     * Memproses data import setelah preview dikonfirmasi
+     * Proses import data sebenarnya
      */
     public function processImport(Request $request)
     {
-        $pengampus = $request->pengampu_ids ?? [];
+        $pengampuIds = $request->input('pengampu_ids', $request->session()->get('pengampu_ids', []));
 
         try {
-            // Konfirmasi diterima - proses data dari Laravel session
-            if (!$request->session()->has('preview_data')) {
+            // Verifikasi data preview tersedia
+            if (!$request->session()->has('import_preview_data')) {
                 throw new \Exception('Data preview tidak ditemukan. Silakan upload ulang.');
             }
 
-            // Get preview data from Laravel session
-            $previewData = $request->session()->get('preview_data');
+            // Ambil data preview dari session
+            $previewData = $request->session()->get('import_preview_data');
+            $tempFile = $request->input('temp_file', $request->session()->get('temp_file'));
 
-            // Start a database transaction to ensure all data is saved together
+            // Validasi file ada
+            if (!$tempFile) {
+                return redirect()->route('import.form')->with('error', 'File tidak ditemukan. Silakan upload ulang.');
+            }
+
+            // Periksa apakah file fisik ada di storage
+            if (!Storage::disk('public')->exists($tempFile)) {
+                \Log::error('File not found in storage: ' . $tempFile);
+                return redirect()->route('import.form')->with('error', 'File fisik tidak ditemukan di storage. Silakan upload ulang.');
+            }
+
+            // Mulai database transaction
             \DB::beginTransaction();
 
             try {
-                // Save the data from session to database using services
-                $this->saveDataFromSession($pengampus, $previewData);
+                // Instead of re-importing from Excel, use the data from session
+                \Log::info('Process Import - Using data from session');
+                $mks = $this->saveDataFromSession($pengampuIds, $previewData);
 
-                // Commit the transaction if everything was successful
+                // Commit transaction jika berhasil
                 \DB::commit();
 
-                // Clean up temp file and session data
-                $tempFile = $request->input('temp_file');
-                if ($tempFile && Storage::disk('public')->exists($tempFile)) {
-                    Storage::disk('public')->delete($tempFile);
-                }
+                // Hapus file temporary
+                Storage::disk('public')->delete($tempFile);
 
-                // Clear the session data after successful import
-                $request->session()->forget('preview_data');
+                // Clear session data
+                $request->session()->forget([
+                    'import_preview_data',
+                    'temp_file',
+                    'pengampu_ids',
+                    'pengampu_session'
+                ]);
 
                 if ($request->ajax()) {
                     return response()->json([
@@ -192,11 +239,11 @@ class ImportController extends Controller
                     ]);
                 }
 
-                return redirect()->route('import.form')->with('success', 'Data berhasil diimpor!');
+                return redirect()->route('import.form')->with('success', 'Data berhasil diimport.');
             } catch (\Exception $e) {
-                // Roll back the transaction if there was an error
+                // Roll back transaction jika gagal
                 \DB::rollback();
-                throw $e; // Re-throw the exception to be caught by the outer catch block
+                throw $e;
             }
         } catch (\Exception $e) {
             if ($request->ajax()) {
@@ -205,7 +252,7 @@ class ImportController extends Controller
                     'message' => $e->getMessage()
                 ], 500);
             }
-            return back()->with('error', $e->getMessage());
+            return redirect()->route('import.form')->with('error', 'Gagal import: ' . $e->getMessage() . ' ' . $e->getFile() . ':' . $e->getLine());
         }
     }
 
@@ -215,13 +262,13 @@ class ImportController extends Controller
     public function cancelImport(Request $request)
     {
         // Clean up temp file if exists
-        $tempFile = $request->query('temp_file');
+        $tempFile = $request->query('temp_file') ?: $request->session()->get('temp_file');
         if ($tempFile && Storage::disk('public')->exists($tempFile)) {
             Storage::disk('public')->delete($tempFile);
         }
 
         // Clear the session data
-        $request->session()->forget('preview_data');
+        $request->session()->forget(['import_preview_data', 'temp_file', 'pengampu_ids', 'pengampu_session']);
 
         return redirect()->route('import.form')->with('info', 'Import dibatalkan.');
     }
@@ -241,12 +288,12 @@ class ImportController extends Controller
      */
     private function saveDataFromSession($pengampuIds = [], $sessionData = null)
     {
-        // Use provided session data or try to get from $_SESSION as fallback
+        // Use provided session data or get from session
         if ($sessionData === null) {
-            if (!isset($_SESSION['preview']) || empty($_SESSION['preview'])) {
+            $sessionData = session('import_preview_data');
+            if (empty($sessionData)) {
                 throw new \Exception('Data preview tidak ditemukan. Silakan upload ulang.');
             }
-            $sessionData = $_SESSION['preview'];
         }
 
         // 1. Get or create necessary dosen records
