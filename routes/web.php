@@ -36,8 +36,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('/user-management/permissions', PermissionManagementController::class);
     });
 
+    // Import Routes
     Route::get('/import', [ImportController::class, 'showImportForm'])->name('import.form');
-    Route::post('/import', [ImportController::class, 'importExcel'])->name('import.excel');
+    Route::get('/import/preview', [ImportController::class, 'previewImport'])->name('import.preview');
+    Route::post('/import/preview', [ImportController::class, 'previewImport']);
+    Route::post('/import/process', [ImportController::class, 'processImport'])->name('import.process');
+    Route::get('/import/cancel', [ImportController::class, 'cancelImport'])->name('import.cancel');
 
     Route::prefix('report')->name('report.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');

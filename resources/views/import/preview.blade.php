@@ -256,9 +256,8 @@
                     @endif
                     @endforeach
 
-                    <form action="{{ route('import.excel') }}" method="POST" enctype="multipart/form-data" class="mt-4" id="confirm-form">
+                    <form action="{{ route('import.process') }}" method="POST" enctype="multipart/form-data" class="mt-4" id="confirm-form">
                         @csrf
-                        <input type="hidden" name="confirm" value="1">
                         <input type="hidden" name="temp_file" value="{{ $tempFile }}">
 
                         @foreach($pengampu_ids as $id)
@@ -267,7 +266,7 @@
 
                         <div class="row">
                             <div class="col-12">
-                                <a href="{{ route('import.form') }}" class="btn btn-secondary">Batal</a>
+                                <a href="{{ route('import.cancel', ['temp_file' => $tempFile]) }}" class="btn btn-secondary">Batal</a>
                                 <button type="submit" class="btn btn-primary" id="confirm-button">Konfirmasi Import</button>
                             </div>
                         </div>

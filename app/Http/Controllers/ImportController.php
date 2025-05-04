@@ -25,19 +25,50 @@ use PhpOffice\PhpSpreadsheet\Settings;
 
 class ImportController extends Controller
 {
+    /**
+     * Menampilkan formulir import
+     */
     public function showImportForm()
     {
         $dosens = Dosen::orderBy('nama')->get();
         return view('import.form', compact('dosens'));
     }
 
-    public function importExcel(Request $request)
+    /**
+     * Memproses file upload dan menampilkan preview data yang akan diimpor
+     */
+    public function previewImport(Request $request)
     {
+        if ($request->isMethod('get')) {
+            // Saat metode GET, periksa apakah data preview tersedia di Laravel session
+            if (!$request->session()->has('preview_data')) {
+                return redirect()->route('import.form')->with('error', 'Data preview tidak ditemukan. Silakan upload ulang.');
+            }
+
+            $previewData = $request->session()->get('preview_data');
+            $tempFile = $request->session()->get('temp_file');
+            $pengampus = $request->session()->get('pengampu_ids', []);
+            $pengampuSession = $request->session()->get('pengampu_session');
+            
+            // Jika di Laravel session tidak ada $_SESSION['preview'], gunakan data dari Laravel session
+            if (!isset($_SESSION['preview']) && $request->session()->has('preview_complete')) {
+                $_SESSION['preview'] = $request->session()->get('preview_complete');
+            }
+
+            return view('import.preview', [
+                'preview' => $previewData,
+                'tempFile' => $tempFile,
+                'pengampu_ids' => $pengampus,
+                'pengampu_session' => $pengampuSession
+            ]);
+        }
+
+        // Logika POST tetap seperti sebelumnya
         $pengampus = $request->pengampu_ids ?? [];
 
         try {
             $validator = Validator::make($request->all(), [
-                'file' => $request->has('confirm') ? 'nullable' : 'required|mimes:xlsx,xls|max:10240',
+                'file' => 'required|mimes:xlsx,xls|max:10240',
                 'pengampu_ids' => 'required|array|min:1',
                 'pengampu_ids.*' => 'exists:mst_dosen,id'
             ], [
@@ -54,54 +85,80 @@ class ImportController extends Controller
                 }
                 return back()->withErrors($validator);
             }
-            if (!$request->has('confirm')) {
-                // Preview mode - don't save to database
-                $file = $request->file('file');
-                $fileName = $file->getClientOriginalName();
-                $filePath = $file->storeAs('temp', $fileName, 'public');
 
-                // Import data in preview mode - this will store data in the session
-                $importer = new CpmkCplImport(true);
-                Excel::import($importer, storage_path('app/public/' . $filePath));
+            $file = $request->file('file');
+            $fileName = $file->getClientOriginalName();
+            $filePath = $file->storeAs('temp', $fileName, 'public');
 
-                // Get the preview data from $_SESSION and store it in Laravel session
-                if (isset($_SESSION['preview'])) {
-                    // Store the entire preview data in the Laravel session
-                    $request->session()->put('preview_data', $_SESSION['preview']);
-                }
+            $importer = new CpmkCplImport(true);
+            Excel::import($importer, storage_path('app/public/' . $filePath));
 
-                // Get the Excel file contents to display in the preview
-                $reader = IOFactory::createReader('Xlsx');
-                $spreadsheet = $reader->load(storage_path('app/public/' . $filePath));
-                $previewData = [];
-
-                // Get data from each sheet we're interested in
-                foreach (['CPMK-CPL', 'FORM NILAI SIAP'] as $sheetName) {
-                    if ($spreadsheet->getSheetByName($sheetName)) {
-                        $worksheet = $spreadsheet->getSheetByName($sheetName);
-                        $sheetArray = $worksheet->toArray(null, true, true, true);
-                        $previewData[$sheetName] = array_values($sheetArray);
-                    }
-                }
-
-                // Ambil data pengampu dari session untuk dibandingkan
-                $pengampuDariSession = null;
+            if (isset($_SESSION['preview'])) {
+                // Simpan data dari $_SESSION ke Laravel session
+                $request->session()->put('preview_data', $_SESSION['preview']);
+                $request->session()->put('preview_complete', $_SESSION['preview']);
+                
+                // Simpan data pengampu dari Excel
+                $pengampuSession = null;
                 if (isset($_SESSION['preview']['pengampu_nama'])) {
-                    $pengampuDariSession = [
+                    $pengampuSession = [
                         'nama' => $_SESSION['preview']['pengampu_nama'],
-                        'nip' => $_SESSION['preview']['pengampu_nip']
+                        'nip' => $_SESSION['preview']['pengampu_nip'] ?? '-'
                     ];
+                    $request->session()->put('pengampu_session', $pengampuSession);
                 }
-
-                return view('import.preview', [
-                    'preview' => $previewData,
-                    'tempFile' => $filePath,
-                    'pengampu_ids' => $pengampus,
-                    'pengampu_session' => $pengampuDariSession
-                ]);
             }
 
-            // Confirmation received - process data from Laravel session
+            $reader = IOFactory::createReader('Xlsx');
+            $spreadsheet = $reader->load(storage_path('app/public/' . $filePath));
+            $previewData = [];
+
+            foreach (['CPMK-CPL', 'FORM NILAI SIAP'] as $sheetName) {
+                if ($spreadsheet->getSheetByName($sheetName)) {
+                    $worksheet = $spreadsheet->getSheetByName($sheetName);
+                    $sheetArray = $worksheet->toArray(null, true, true, true);
+                    $previewData[$sheetName] = array_values($sheetArray);
+                }
+            }
+
+            $request->session()->put('temp_file', $filePath);
+            $request->session()->put('pengampu_ids', $pengampus);
+
+            // Tambahkan data pengampu dari session untuk POST
+            $pengampuSession = null;
+            if (isset($_SESSION['preview']['pengampu_nama'])) {
+                $pengampuSession = [
+                    'nama' => $_SESSION['preview']['pengampu_nama'],
+                    'nip' => $_SESSION['preview']['pengampu_nip'] ?? '-'
+                ];
+            }
+
+            return view('import.preview', [
+                'preview' => $previewData,
+                'tempFile' => $filePath,
+                'pengampu_ids' => $pengampus,
+                'pengampu_session' => $pengampuSession
+            ]);
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Memproses data import setelah preview dikonfirmasi
+     */
+    public function processImport(Request $request)
+    {
+        $pengampus = $request->pengampu_ids ?? [];
+
+        try {
+            // Konfirmasi diterima - proses data dari Laravel session
             if (!$request->session()->has('preview_data')) {
                 throw new \Exception('Data preview tidak ditemukan. Silakan upload ulang.');
             }
@@ -141,18 +198,6 @@ class ImportController extends Controller
                 \DB::rollback();
                 throw $e; // Re-throw the exception to be caught by the outer catch block
             }
-        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-            $failures = collect($e->failures())->map(function($failure) {
-                return $failure->getMessage();
-            })->join(', ');
-
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $failures
-                ], 422);
-            }
-            return back()->with('error', $failures);
         } catch (\Exception $e) {
             if ($request->ajax()) {
                 return response()->json([
@@ -161,6 +206,33 @@ class ImportController extends Controller
                 ], 500);
             }
             return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * Membatalkan proses import dan menghapus data sementara
+     */
+    public function cancelImport(Request $request)
+    {
+        // Clean up temp file if exists
+        $tempFile = $request->query('temp_file');
+        if ($tempFile && Storage::disk('public')->exists($tempFile)) {
+            Storage::disk('public')->delete($tempFile);
+        }
+
+        // Clear the session data
+        $request->session()->forget('preview_data');
+
+        return redirect()->route('import.form')->with('info', 'Import dibatalkan.');
+    }
+
+    // Method lama untuk backward compatibility
+    public function importExcel(Request $request)
+    {
+        if ($request->has('confirm')) {
+            return $this->processImport($request);
+        } else {
+            return $this->previewImport($request);
         }
     }
 

@@ -13,7 +13,7 @@
         </div>
 
         <div class="card-body">
-            <form id="import-form" action="{{ route('import.excel') }}" method="POST" enctype="multipart/form-data">
+            <form id="import-form" action="{{ route('import.preview') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-5">
                     <label class="form-label required" for="file">Pilih file Excel</label>
