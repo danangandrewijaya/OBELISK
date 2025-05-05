@@ -230,13 +230,25 @@
 
         // Function to load dashboard data based on selected semester
         function loadDashboardData(elements, semester = 'all') {
-            // Build URL with semester parameter
-            const url = '/dashboard/stats' + (semester ? `?semester=${semester}` : '');
+            // Show loading indication
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'position-absolute w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75';
+            loadingDiv.innerHTML = '<span class="spinner-border text-primary"></span>';
+            loadingDiv.style.top = '0';
+            loadingDiv.style.left = '0';
+            loadingDiv.style.zIndex = '100';
+            document.querySelector('.app-container').appendChild(loadingDiv);
+
+            // Store current selection
+            const currentSemester = semester;
+
+            // Build URL with semester parameter and timestamp to prevent caching
+            const url = '/dashboard/stats' + (semester ? `?semester=${semester}&_=${new Date().getTime()}` : `?_=${new Date().getTime()}`);
 
             fetch(url)
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                        throw new Error(`HTTP error! Status: ${response.status}`);
                     }
                     return response.json();
                 })
@@ -245,32 +257,63 @@
                     console.log('Dashboard data received:', data);
 
                     // Update semester dropdown options if provided
-                    if (data.semester_options && data.semester_options.length > 0) {
-                        // Keep the current All option
-                        let currentOptions = $(elements.semesterFilter).find('option[value="all"]');
-                        $(elements.semesterFilter).empty().append(currentOptions);
+                    if (data.semester_options && Array.isArray(data.semester_options) && data.semester_options.length > 0) {
+                        try {
+                            // Temporarily disable change event to prevent repeated calls
+                            $(elements.semesterFilter).off('change');
 
-                        // Add new semester options
-                        data.semester_options.forEach(option => {
-                            $(elements.semesterFilter).append(new Option(option.text, option.id, false, false));
-                        });
+                            // Save current selection before emptying
+                            const selectedValue = $(elements.semesterFilter).val();
 
-                        // Trigger select2 update
-                        $(elements.semesterFilter).trigger('change.select2');
+                            // Clear and add all options
+                            $(elements.semesterFilter).empty();
+
+                            // Add "All" option first
+                            $(elements.semesterFilter).append(new Option('Semua Semester', 'all', false, selectedValue === 'all'));
+
+                            // Add semester options
+                            data.semester_options.forEach(option => {
+                                const isSelected = option.id === selectedValue;
+                                $(elements.semesterFilter).append(new Option(option.text, option.id, false, isSelected));
+                            });
+
+                            // Restore select2 instance
+                            $(elements.semesterFilter).select2({
+                                minimumResultsForSearch: 5
+                            });
+
+                            // Reattach change event
+                            $(elements.semesterFilter).on('change', function() {
+                                loadDashboardData(elements, this.value);
+                            });
+
+                            // Ensure the correct value is selected
+                            $(elements.semesterFilter).val(currentSemester).trigger('change.select2', { triggerChange: false });
+                        } catch (error) {
+                            console.error('Error updating semester options:', error);
+                        }
                     }
 
                     // Update semester label
-                    if (semester === 'all') {
-                        elements.semesterLabel.textContent = 'Semua Semester (Terbaru: ' + data.tahun_aktif + '/' + data.semester_aktif + ')';
-                    } else {
-                        const [tahun, semesterNum] = semester.split('-');
-                        elements.semesterLabel.textContent = 'Semester ' + tahun + '/' + semesterNum;
+                    try {
+                        if (semester === 'all') {
+                            elements.semesterLabel.textContent = 'Semua Semester (Terbaru: ' + (data.tahun_aktif || '-') + '/' + (data.semester_aktif || '-') + ')';
+                        } else {
+                            const [tahun, semesterNum] = semester.split('-');
+                            elements.semesterLabel.textContent = 'Semester ' + tahun + '/' + semesterNum;
+                        }
+                    } catch (error) {
+                        console.error('Error updating semester label:', error);
                     }
 
                     // Update count cards
-                    elements.cpmk.textContent = data.cpmk_count;
-                    elements.cpl.textContent = data.cpl_count;
-                    elements.mks.textContent = data.mks_count;
+                    try {
+                        elements.cpmk.textContent = data.cpmk_count || 0;
+                        elements.cpl.textContent = data.cpl_count || 0;
+                        elements.mks.textContent = data.mks_count || 0;
+                    } catch (error) {
+                        console.error('Error updating count cards:', error);
+                    }
 
                     // Initialize or update Curriculum Distribution Chart
                     if (data.curriculum_distribution && elements.curriculumChart) {
@@ -298,11 +341,20 @@
 
                     // Initialize MKS Table
                     if (data.mks_list) {
-                        initMksTable(data.mks_list);
+                        try {
+                            initMksTable(data.mks_list);
+                        } catch (error) {
+                            console.error('Error initializing MKS table:', error);
+                        }
                     }
                 })
                 .catch(error => {
                     console.error('Error loading dashboard data:', error);
+                    alert('Terjadi kesalahan saat memuat data dashboard. Silakan coba lagi.');
+                })
+                .finally(() => {
+                    // Remove loading indication
+                    document.querySelector('.app-container').removeChild(loadingDiv);
                 });
         }
 
