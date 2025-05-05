@@ -19,6 +19,16 @@ class Mahasiswa extends Model
         'kurikulum_id',
     ];
 
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'nim';
+    }
+
     public function prodi()
     {
         return $this->belongsTo(Prodi::class);

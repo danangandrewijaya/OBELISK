@@ -20,6 +20,56 @@ class MataKuliahSemester extends Model
         'gpm_id',
     ];
 
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    /**
+     * Get the slug attribute.
+     *
+     * @return string
+     */
+    public function getSlugAttribute()
+    {
+        $kode = $this->mkk ? $this->mkk->kode : 'unknown';
+        return "{$kode}-{$this->tahun}-{$this->semester}";
+    }
+
+    /**
+     * Retrieve the model for a bound value.
+     *
+     * @param  mixed  $value
+     * @param  string|null  $field
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field === 'slug' || $field === null) {
+            // Parse the slug to extract kode, tahun, and semester
+            $parts = explode('-', $value);
+            if (count($parts) >= 3) {
+                $kode = $parts[0];
+                $tahun = $parts[1];
+                $semester = $parts[2];
+
+                return $this->whereHas('mkk', function ($query) use ($kode) {
+                    $query->where('kode', $kode);
+                })->where('tahun', $tahun)
+                  ->where('semester', $semester)
+                  ->first();
+            }
+            return null;
+        }
+
+        return parent::resolveRouteBinding($value, $field);
+    }
+
     public function mkk()
     {
         return $this->belongsTo(MataKuliahKurikulum::class, 'mkk_id');
