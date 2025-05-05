@@ -12,6 +12,7 @@ use App\Models\Cpl;
 use App\Models\Cpmk;
 use App\Models\CpmkCpl;
 use App\Models\Dosen;
+use App\Models\ImportLog;
 use App\Models\Mahasiswa;
 use App\Models\MataKuliahKurikulum;
 use App\Models\MataKuliahSemester;
@@ -103,6 +104,17 @@ class ImportController extends Controller
             $fileName = $file->getClientOriginalName();
             $filePath = $file->storeAs('temp', $fileName, 'public');
             \Log::debug('POST Preview - Stored file at: ' . $filePath);
+
+            // Log the file upload for preview
+            ImportLog::createLog('preview', [
+                'file_name' => $fileName,
+                'file_path' => $filePath,
+                'file_type' => $file->getClientOriginalExtension(),
+                'file_size' => $file->getSize(),
+                'details' => [
+                    'pengampu_ids' => $pengampus
+                ]
+            ]);
 
             // Import Excel dan simpan data sesi
             \Log::debug('POST Preview - Starting Excel import process');
@@ -218,6 +230,20 @@ class ImportController extends Controller
                 \Log::info('Process Import - Using data from session');
                 $mks = $this->saveDataFromSession($pengampuIds, $previewData);
 
+                // Log successful import operation
+                ImportLog::createLog('confirm', [
+                    'file_name' => basename($tempFile),
+                    'file_path' => $tempFile,
+                    'mks_id' => $mks->id,
+                    'details' => [
+                        'mata_kuliah_kode' => $previewData['mata_kuliah_kode'] ?? null,
+                        'tahun' => $previewData['tahun'] ?? null,
+                        'semester' => $previewData['semester'] ?? null,
+                        'kelas' => $previewData['kelas'] ?? null,
+                        'pengampu_ids' => $pengampuIds
+                    ]
+                ]);
+
                 // Commit transaction jika berhasil
                 \DB::commit();
 
@@ -253,6 +279,18 @@ class ImportController extends Controller
                 throw $e;
             }
         } catch (\Exception $e) {
+            // Log the error in ImportLog
+            ImportLog::createLog('confirm', [
+                'file_name' => isset($tempFile) ? basename($tempFile) : null,
+                'file_path' => $tempFile ?? null,
+                'status' => 'failed',
+                'error_message' => $e->getMessage(),
+                'details' => [
+                    'exception_file' => $e->getFile(),
+                    'exception_line' => $e->getLine()
+                ]
+            ]);
+
             // Additional attempt to clean up temp file in outer exception handler
             if (isset($tempFile) && Storage::disk('public')->exists($tempFile)) {
                 Storage::disk('public')->delete($tempFile);
@@ -277,6 +315,16 @@ class ImportController extends Controller
         // Clean up temp file if exists
         $tempFile = $request->query('temp_file') ?: $request->session()->get('temp_file');
         if ($tempFile && Storage::disk('public')->exists($tempFile)) {
+            // Log the canceled import
+            ImportLog::createLog('cancel', [
+                'file_name' => basename($tempFile),
+                'file_path' => $tempFile,
+                'details' => [
+                    'pengampu_ids' => $request->session()->get('pengampu_ids', []),
+                    'was_previewed' => $request->session()->has('import_preview_data')
+                ]
+            ]);
+
             Storage::disk('public')->delete($tempFile);
         }
 
