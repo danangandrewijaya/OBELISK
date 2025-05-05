@@ -21,10 +21,8 @@ class MahasiswaController extends Controller
 
     public function show(Mahasiswa $mahasiswa)
     {
-        $cpls = Cpl::
-        // where('prodi_id', $mahasiswa->prodi_id)
-            // ->
-            orderBy('nomor')
+        $cpls = Cpl::where('kurikulum_id', $mahasiswa->kurikulum_id)
+            ->orderBy('nomor')
             ->get();
 
         return view('report.mahasiswa.show', compact('mahasiswa', 'cpls'));
