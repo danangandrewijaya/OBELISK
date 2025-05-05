@@ -362,7 +362,7 @@ class ImportController extends Controller
         }
 
         // 1. Get or create necessary dosen records
-        $pengampu = $this->getOrCreateDosen($sessionData['pengampu_nip'], $sessionData['pengampu_nama']);
+        // $pengampu = $this->getOrCreateDosen($sessionData['pengampu_nip'], $sessionData['pengampu_nama']);
         $koordPengampu = $this->getOrCreateDosen($sessionData['koord_pengampu_nip'], $sessionData['koord_pengampu_nama']);
         $gpm = $this->getOrCreateDosen($sessionData['gpm_nip'], $sessionData['gpm_nama']);
         $kaprodi = $this->getOrCreateDosen($sessionData['kaprodi_nip'], $sessionData['kaprodi_nama']);
