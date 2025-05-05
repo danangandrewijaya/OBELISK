@@ -41,13 +41,23 @@ class DatabaseSeeder extends Seeder
 
         Kurikulum::insert([
             [
+                'nama' => 'Kurikulum 2017',
+                'prodi_id' => Prodi::where('kode', '20201')->first()->id,
+            ],
+            [
                 'nama' => 'Kurikulum 2020',
                 'prodi_id' => Prodi::where('kode', '20201')->first()->id,
             ],
         ]);
 
-        $this->call(MataKuliahKurikulumSeeder::class);
-        $this->call(CplSeeder::class);
+        $this->call(CplSeeder::class, [
+            'kurikulum_id' => Kurikulum::where('nama', 'Kurikulum 2017')->first()->id,
+        ]);
+        $this->call(CplSeeder::class, [
+            'kurikulum_id' => Kurikulum::where('nama', 'Kurikulum 2020')->first()->id,
+        ]);
+        $this->call(MataKuliahKurikulum2017Seeder::class);
+        $this->call(MataKuliahKurikulum2020Seeder::class);
         $this->call(DosenSeeder::class);
     }
 }

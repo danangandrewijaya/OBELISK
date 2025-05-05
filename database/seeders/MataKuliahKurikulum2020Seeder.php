@@ -7,14 +7,14 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Kurikulum;
 use App\Models\MataKuliahKurikulum;
 
-class MataKuliahKurikulumSeeder extends Seeder
+class MataKuliahKurikulum2020Seeder extends Seeder
 {
     public function run()
     {
-        // Ambil ID kurikulum pertama (pastikan sudah ada data di mst_kurikulum)
-        $kurikulum = Kurikulum::first();
+        // Ambil ID kurikulum 2020
+        $kurikulum = Kurikulum::where('nama', 'Kurikulum 2020')->first();
         if (!$kurikulum) {
-            echo "Seeder gagal: Tidak ada data di mst_kurikulum!";
+            echo "Seeder gagal: Kurikulum 2020 tidak ditemukan!";
             return;
         }
 
