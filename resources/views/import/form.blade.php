@@ -103,12 +103,20 @@
                 allowClear: true,
                 closeOnSelect: false
             });
+
+            // Cek apakah ada parameter query pending_preview
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('pending_preview')) {
+                loadingModal.show();
+            }
         });
 
         // Initialize loading modal
         document.addEventListener('DOMContentLoaded', function() {
             // Hide loading modal if it was somehow left open
-            loadingModal.hide();
+            if (!window.location.search.includes('pending_preview')) {
+                loadingModal.hide();
+            }
         });
 
         form.addEventListener('submit', function(e) {
@@ -166,14 +174,9 @@
             submitButton.setAttribute('data-kt-indicator', 'on');
             submitButton.disabled = true;
 
-            // Enable button after 1 minute (failsafe)
-            setTimeout(function() {
-                submitButton.removeAttribute('data-kt-indicator');
-                submitButton.disabled = false;
-
-                // Hide loading modal
-                loadingModal.hide();
-            }, 60000);
+            // Tambahkan parameter ke action form untuk menandai pending preview
+            const formAction = form.getAttribute('action');
+            form.setAttribute('action', formAction + (formAction.includes('?') ? '&' : '?') + 'pending_preview=1');
         });
     </script>
     @endpush

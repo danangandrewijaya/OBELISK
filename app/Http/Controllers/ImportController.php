@@ -60,11 +60,15 @@ class ImportController extends Controller
 
             \Log::info('GET Preview - Successfully loaded preview data: ' . json_encode(array_keys($previewData)));
 
+            // Tentukan apakah ini adalah pending preview
+            $pendingPreview = $request->has('pending_preview');
+
             return view('import.preview', [
                 'preview' => $preview,
                 'tempFile' => $tempFile,
                 'pengampu_ids' => $pengampus,
-                'pengampu_session' => $pengampuSession
+                'pengampu_session' => $pengampuSession,
+                'pending_preview' => $pendingPreview
             ]);
         }
 

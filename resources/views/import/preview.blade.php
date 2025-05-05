@@ -309,8 +309,30 @@
 
     // Initialize loading modal
     document.addEventListener('DOMContentLoaded', function() {
+        // Close any loading modal from the form page
+        try {
+            // Check if window.opener is available (we're in a new window) and has a loadingModal
+            if (window.opener && window.opener.loadingModal) {
+                window.opener.loadingModal.hide();
+            }
+        } catch (e) {
+            console.error("Couldn't access opener window:", e);
+        }
+
         // Hide loading modal if it was somehow left open
         loadingModal.hide();
+
+        // Dispatch an event that the preview is loaded
+        window.dispatchEvent(new CustomEvent('preview-loaded'));
+
+        // If we were redirected from the form page with a pending_preview parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('pending_preview')) {
+            // Remove the parameter to avoid confusion on future loads
+            const url = new URL(window.location);
+            url.searchParams.delete('pending_preview');
+            window.history.replaceState({}, '', url);
+        }
     });
 
     form.addEventListener('submit', function(e) {
