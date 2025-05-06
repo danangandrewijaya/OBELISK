@@ -107,12 +107,14 @@ class SiklusController extends Controller
 
         // Get available mata kuliah kurikulum that have CPL connections
         $availableMkks = MataKuliahKurikulum::where('kurikulum_id', $siklus->kurikulum_id)
-            ->whereExists(function($query) {
+            ->whereExists(function($query) use ($siklus) {
                 $query->select(DB::raw(1))
                     ->from('trx_cpmk_cpl')
                     ->join('mst_cpmk', 'trx_cpmk_cpl.cpmk_id', '=', 'mst_cpmk.id')
                     ->join('mst_mata_kuliah_semester', 'mst_cpmk.mks_id', '=', 'mst_mata_kuliah_semester.id')
-                    ->whereRaw('mst_mata_kuliah_semester.mkk_id = mst_mata_kuliah_kurikulum.id');
+                    ->whereRaw('mst_mata_kuliah_semester.mkk_id = mst_mata_kuliah_kurikulum.id')
+                    ->where('mst_mata_kuliah_semester.tahun', '>=', $siklus->tahun_mulai)
+                    ->where('mst_mata_kuliah_semester.tahun', '<=', $siklus->tahun_selesai);
             })
             ->orderBy('kode')
             ->get();
@@ -133,6 +135,8 @@ class SiklusController extends Controller
                 ->join('mst_cpmk', 'trx_cpmk_cpl.cpmk_id', '=', 'mst_cpmk.id')
                 ->join('mst_mata_kuliah_semester', 'mst_cpmk.mks_id', '=', 'mst_mata_kuliah_semester.id')
                 ->where('mst_mata_kuliah_semester.mkk_id', $mkk->id)
+                ->where('mst_mata_kuliah_semester.tahun', '>=', $siklus->tahun_mulai)
+                ->where('mst_mata_kuliah_semester.tahun', '<=', $siklus->tahun_selesai)
                 ->join('mst_cpl', 'trx_cpmk_cpl.cpl_id', '=', 'mst_cpl.id')
                 ->distinct()
                 ->pluck('mst_cpl.id')
@@ -150,7 +154,7 @@ class SiklusController extends Controller
     public function saveCplSelections(Request $request, Siklus $siklus)
     {
         $request->validate([
-            'cpl_selections' => 'required|array',
+            'cpl_selections' => 'nullable|array',
             'cpl_selections.*' => 'array',
             'cpl_selections.*.*' => 'exists:mst_mata_kuliah_kurikulum,id',
         ]);
@@ -162,14 +166,16 @@ class SiklusController extends Controller
             // Delete existing selections
             SiklusCpl::where('siklus_id', $siklus->id)->delete();
 
-            // Save new selections
-            foreach($request->cpl_selections as $cplId => $mkkIds) {
-                foreach($mkkIds as $mkkId) {
-                    SiklusCpl::create([
-                        'siklus_id' => $siklus->id,
-                        'cpl_id' => $cplId,
-                        'mata_kuliah_kurikulum_id' => $mkkId,
-                    ]);
+            // Save new selections if any
+            if ($request->has('cpl_selections') && is_array($request->cpl_selections)) {
+                foreach($request->cpl_selections as $cplId => $mkkIds) {
+                    foreach($mkkIds as $mkkId) {
+                        SiklusCpl::create([
+                            'siklus_id' => $siklus->id,
+                            'cpl_id' => $cplId,
+                            'mata_kuliah_kurikulum_id' => $mkkId,
+                        ]);
+                    }
                 }
             }
 
