@@ -49,6 +49,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('matakuliah-semester', MatakuliahSemesterController::class)->only(['index', 'show']);
     });
 
+    // Import Logs Routes - only index and show (no delete functionality)
+    Route::resource('import-logs', App\Http\Controllers\ImportLogController::class)->only(['index', 'show']);
+
     Route::get('/report/cpmk-cpl', [CpmkCplController::class, 'index'])->name('report.cpmk-cpl');
 
     /*
