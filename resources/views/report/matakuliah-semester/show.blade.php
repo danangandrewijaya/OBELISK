@@ -9,17 +9,13 @@
         </div>
         <div class="card-body">
             <div class="row mb-5">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="fw-bold">Kode - Nama</div>
                     <div>{{ $matakuliahSemester->mkk->kode }} - {{ $matakuliahSemester->mkk->nama }}</div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="fw-bold">Tahun / Semester</div>
                     <div>{{ $matakuliahSemester->tahun }} / {{ $matakuliahSemester->semester }}</div>
-                </div>
-                <div class="col-md-4">
-                    <div class="fw-bold">Kelas</div>
-                    <div>{{ $matakuliahSemester->kelas }}</div>
                 </div>
             </div>
 
@@ -77,6 +73,7 @@
                                     <th>NIM</th>
                                     <th>Nama</th>
                                     <th>Program Studi</th>
+                                    <th>Kelas</th>
                                     <th class="text-end">Nilai Angka</th>
                                     <th class="text-end">Nilai Huruf</th>
                                     <th class="text-end">Outcome</th>
@@ -84,23 +81,24 @@
                             </thead>
                             <tbody>
                                 @foreach($matakuliahSemester->nilaiMahasiswa as $nilai)
-                                    <tr>
+                                    <tr class="{{ $nilai->outcome == 'TIDAK LULUS' ? 'table-danger' : ($nilai->outcome == 'REMIDI CPMK' ? 'table-warning' : '') }}">
                                         <td>{{ $nilai->mahasiswa->nim }}</td>
                                         <td>{{ $nilai->mahasiswa->nama }}</td>
                                         <td>{{ $nilai->mahasiswa->prodi->nama }}</td>
+                                        <td>{{ $nilai->kelas }}</td>
                                         <td class="text-end">
-                                            <span class="badge badge-light-{{ $nilai->nilai_akhir_angka >= 60 ? 'success' : 'danger' }} fw-bold">
+                                            <span class="badge badge-{{ $nilai->outcome == 'TIDAK LULUS' ? 'danger' : ($nilai->outcome == 'REMIDI CPMK' ? 'warning' : 'light-primary') }} fw-bold">
                                                 {{ $nilai->nilai_akhir_angka }}
                                             </span>
                                         </td>
                                         <td class="text-end">
-                                            <span class="badge badge-light-{{ $nilai->nilai_akhir_huruf >= 60 ? 'success' : 'danger' }} fw-bold">
+                                            <span class="badge badge-{{ $nilai->outcome == 'TIDAK LULUS' ? 'danger' : ($nilai->outcome == 'REMIDI CPMK' ? 'warning' : 'light-primary') }} fw-bold">
                                                 {{ $nilai->nilai_akhir_huruf }}
                                             </span>
                                         </td>
                                         <td class="text-end">
                                             <button type="button" class="btn btn-sm p-1" data-bs-toggle="modal" data-bs-target="#cpmkModal{{ $nilai->id }}">
-                                                <span class="badge badge-light-primary fw-bold">
+                                                <span class="badge badge-{{ $nilai->outcome == 'TIDAK LULUS' ? 'danger' : ($nilai->outcome == 'REMIDI CPMK' ? 'warning' : 'light-primary') }} fw-bold">
                                                     {{ $nilai->outcome }}
                                                 </span>
                                             </button>

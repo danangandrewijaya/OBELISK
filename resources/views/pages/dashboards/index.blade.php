@@ -152,8 +152,8 @@
                                     <th>Tahun/Semester</th>
                                     <th>Jumlah Kelas</th>
                                     <th>Jumlah Mahasiswa</th>
-                                    <th>CPMK</th>
-                                    <th>CPL</th>
+                                    <th>Jumlah CPMK</th>
+                                    <th>Jumlah CPL</th>
                                 </tr>
                             </thead>
                             <tbody class="text-gray-600 fw-semibold">
