@@ -149,6 +149,9 @@
                                     <th>Kode</th>
                                     <th>Nama Mata Kuliah</th>
                                     <th>SKS</th>
+                                    <th>Tahun/Semester</th>
+                                    <th>Jumlah Kelas</th>
+                                    <th>Jumlah Mahasiswa</th>
                                     <th>CPMK</th>
                                     <th>CPL</th>
                                 </tr>
@@ -508,6 +511,9 @@
                 <td>${mks.kode}</td>
                 <td>${mks.nama}</td>
                 <td>${mks.sks}</td>
+                <td>${mks.tahun}/${mks.semester}</td>
+                <td>${mks.kelas_count || 0}</td>
+                <td>${mks.mahasiswa_count || 0}</td>
                 <td>${mks.cpmks_count}</td>
                 <td>${mks.cpls_count}</td>
             `;

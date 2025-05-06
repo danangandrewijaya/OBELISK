@@ -128,6 +128,18 @@ class DashboardController extends Controller
                     ->distinct('trx_cpmk_cpl.cpl_id')
                     ->count();
 
+                // Count unique classes (using kelas field from nilai table)
+                $kelasCount = DB::table('trx_nilai')
+                    ->where('mks_id', $mks->id)
+                    ->distinct('kelas')
+                    ->count('kelas');
+
+                // Count unique students for this course
+                $mahasiswaCount = DB::table('trx_nilai')
+                    ->where('mks_id', $mks->id)
+                    ->distinct('mahasiswa_id')
+                    ->count('mahasiswa_id');
+
                 return [
                     'id' => $mks->id,
                     'kode' => $mks->mkk->kode,
@@ -136,7 +148,9 @@ class DashboardController extends Controller
                     'tahun' => $mks->tahun,
                     'semester' => $mks->semester,
                     'cpmks_count' => $cpmkCount,
-                    'cpls_count' => $cplCount
+                    'cpls_count' => $cplCount,
+                    'kelas_count' => $kelasCount,
+                    'mahasiswa_count' => $mahasiswaCount
                 ];
             });
 
