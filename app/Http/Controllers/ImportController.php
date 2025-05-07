@@ -443,7 +443,9 @@ class ImportController extends Controller
                                 'cpl_id' => $cpl->id
                             ],
                             [
-                                'bobot' => $cpmkData['cpl_bobot'] ?? 1
+                                'bobot' => is_numeric($cpmkData['cpl_bobot']) ?
+                                          (float)$cpmkData['cpl_bobot'] :
+                                          0 // Ensure zero values are handled properly
                             ]
                         );
                     }
@@ -495,8 +497,8 @@ class ImportController extends Controller
                     ],
                     [
                         'kelas' => $kelas,
-                        'semester' => $nilaiData['semester'],
-                        'status' => $nilaiData['status'],
+                        'semester' => $nilaiData['semester'] ?? null, // Set default as null
+                        'status' => $nilaiData['status'] ?? null, // Set default as null
                         'nilai_akhir_angka' => $nilaiData['nilai_akhir_angka'],
                         'nilai_akhir_huruf' => $nilaiData['nilai_akhir_huruf'],
                         'nilai_bobot' => $nilaiData['nilai_bobot'],
