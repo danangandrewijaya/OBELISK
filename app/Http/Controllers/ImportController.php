@@ -393,16 +393,21 @@ class ImportController extends Controller
 
         // 3. Save pengampu associations
         if (!empty($pengampuIds)) {
-            // Clear existing pengampu associations
-            Pengampu::where('mks_id', $mks->id)->delete();
-
-            // Add new pengampu associations
+            // Use updateOrCreate for each pengampu
             foreach ($pengampuIds as $dosenId) {
-                Pengampu::create([
-                    'mks_id' => $mks->id,
-                    'dosen_id' => $dosenId
-                ]);
+                Pengampu::updateOrCreate(
+                    [
+                        'mks_id' => $mks->id,
+                        'dosen_id' => $dosenId
+                    ],
+                    [] // No additional fields to update
+                );
             }
+
+            // Remove any pengampu not in our list (optional)
+            // Pengampu::where('mks_id', $mks->id)
+            //     ->whereNotIn('dosen_id', $pengampuIds)
+            //     ->delete();
         }
 
         // 4. Process CPMK-CPL data

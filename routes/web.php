@@ -69,6 +69,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('siklus/{siklus}/configure', [\App\Http\Controllers\SiklusController::class, 'configure'])->name('siklus.configure');
     Route::post('siklus/{siklus}/save-cpl-selections', [\App\Http\Controllers\SiklusController::class, 'saveCplSelections'])->name('siklus.save-cpl-selections');
+
+    // Master Mata Kuliah Semester - Changed from nested resource to simple resource with prefix and name
+    Route::prefix('master')->name('master.')->group(function () {
+        Route::resource('matakuliah-semester', \App\Http\Controllers\MataKuliahSemesterController::class);
+    });
 });
 
 Route::get('/error', function () {

@@ -80,6 +80,23 @@ class MataKuliahSemester extends Model
         return $this->belongsTo(Dosen::class, 'pengampu_id');
     }
 
+    public function pengampus()
+    {
+        return $this->hasMany(Pengampu::class, 'mks_id');
+    }
+
+    public function pengampuDosens()
+    {
+        return $this->hasManyThrough(
+            Dosen::class,
+            Pengampu::class,
+            'mks_id', // Foreign key on pengampu table
+            'id',     // Foreign key on dosen table
+            'id',     // Local key on matakuliah_semester table
+            'dosen_id' // Local key on pengampu table
+        );
+    }
+
     public function koordPengampu()
     {
         return $this->belongsTo(Dosen::class, 'koord_pengampu_id');

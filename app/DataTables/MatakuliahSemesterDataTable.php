@@ -16,19 +16,25 @@ class MatakuliahSemesterDataTable extends DataTable
     {
         return (new EloquentDataTable($query))
             ->addColumn('action', function ($row) {
+                // return view('matakuliah-semester.action', compact('row'));
+                // for development purposes
                 return view('report.matakuliah-semester.action', compact('row'));
             })
             ->addColumn('nama_matakuliah', function ($row) {
                 return $row->mkk->kode . ' - ' . $row->mkk->nama;
             })
-            ->rawColumns(['action'])
+            ->addColumn('pengampu', function ($row) {
+                $pengampuList = $row->pengampuDosens->pluck('nama')->toArray();
+                return !empty($pengampuList) ? implode('<br>', $pengampuList) : '-';
+            })
+            ->rawColumns(['action', 'pengampu'])
             ->setRowId('id');
     }
 
     public function query(MataKuliahSemester $model): QueryBuilder
     {
         $query = $model->newQuery()
-            ->with(['mkk']);
+            ->with(['mkk', 'pengampuDosens']);
 
         // Apply year filter if present
         if ($this->request()->has('tahun')) {
@@ -73,6 +79,12 @@ class MatakuliahSemesterDataTable extends DataTable
                 ->title('Semester')
                 ->searchable(true)
                 ->orderable(true),
+            Column::computed('pengampu')
+                ->title('Pengampu')
+                ->searchable(false)
+                ->orderable(false)
+                ->width(300)
+                ->addClass('text-start'),
             Column::computed('action')
                 ->exportable(false)
                 ->printable(false)
