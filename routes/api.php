@@ -3,6 +3,7 @@
 use App\Actions\SamplePermissionApi;
 use App\Actions\SampleRoleApi;
 use App\Actions\SampleUserApi;
+use App\Http\Controllers\Api\NilaiController;
 use App\Http\Controllers\DashboardController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -24,6 +25,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
+
+// Route untuk nilai CPMK
+Route::get('/nilai/{id}/cpmk', [NilaiController::class, 'getCpmkValues']);
 
 Route::prefix('v1')->group(function () {
 

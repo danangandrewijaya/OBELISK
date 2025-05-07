@@ -94,6 +94,7 @@
                                 <th>CPMK</th>
                                 <th>Deskripsi</th>
                                 <th>Level Taksonomi</th>
+                                <th>CPL</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -103,6 +104,19 @@
                                     <td>CPMK-{{ $cpmk->nomor }}</td>
                                     <td>{{ $cpmk->deskripsi }}</td>
                                     <td>{{ $cpmk->level_taksonomi }}</td>
+                                    <td>
+                                        @if($cpmk->cpmkCpl->count() > 0)
+                                            <ul class="list-unstyled mb-0">
+                                                @foreach($cpmk->cpmkCpl as $cpmkCpl)
+                                                    @if($cpmkCpl->cpl)
+                                                        <li>CPL-{{ $cpmkCpl->cpl->nomor }}: {{ $cpmkCpl->cpl->nama }}</li>
+                                                    @endif
+                                                @endforeach
+                                            </ul>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -131,9 +145,11 @@
                                 <th>NIM</th>
                                 <th>Nama</th>
                                 <th>Kelas</th>
-                                <th>Nilai Akhir</th>
-                                <th>Grade</th>
+                                <th>Semester</th>
                                 <th>Status</th>
+                                <th>Nilai Akhir Angka</th>
+                                <th>Nilai Akhir Huruf</th>
+                                <th>Outcome</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -143,17 +159,39 @@
                                     <td>{{ $nilai->mahasiswa->nim ?? '-' }}</td>
                                     <td>{{ $nilai->mahasiswa->nama ?? 'Tidak diketahui' }}</td>
                                     <td>{{ $nilai->kelas ?? '-' }}</td>
+                                    <td>{{ $nilai->semester ?? '-' }}</td>
+                                    <td>{{ $nilai->status ?? '-' }}</td>
                                     <td>{{ $nilai->nilai_akhir_angka ?? '-' }}</td>
                                     <td>{{ $nilai->nilai_akhir_huruf ?? '-' }}</td>
                                     <td>
-                                        @if($nilai->outcome == 'lulus')
-                                            <span class="badge badge-success">Lulus</span>
-                                        @elseif($nilai->outcome == 'remidi_cpmk')
-                                            <span class="badge badge-warning">Remidi CPMK</span>
-                                        @elseif($nilai->outcome == 'tidak_lulus')
-                                            <span class="badge badge-danger">Tidak Lulus</span>
+                                        @if($nilai->outcome == 'LULUS')
+                                            <a href="#" class="badge badge-success nilai-cpmk-modal"
+                                               data-mahasiswa-id="{{ $nilai->mahasiswa->id ?? '' }}"
+                                               data-mahasiswa-nama="{{ $nilai->mahasiswa->nama ?? 'Tidak diketahui' }}"
+                                               data-nilai-id="{{ $nilai->id ?? '' }}"
+                                               data-bs-toggle="modal"
+                                               data-bs-target="#nilaiCpmkModal">Lulus</a>
+                                        @elseif($nilai->outcome == 'REMIDI CPMK')
+                                            <a href="#" class="badge badge-warning nilai-cpmk-modal"
+                                               data-mahasiswa-id="{{ $nilai->mahasiswa->id ?? '' }}"
+                                               data-mahasiswa-nama="{{ $nilai->mahasiswa->nama ?? 'Tidak diketahui' }}"
+                                               data-nilai-id="{{ $nilai->id ?? '' }}"
+                                               data-bs-toggle="modal"
+                                               data-bs-target="#nilaiCpmkModal">Remidi CPMK</a>
+                                        @elseif($nilai->outcome == 'TIDAK LULUS')
+                                            <a href="#" class="badge badge-danger nilai-cpmk-modal"
+                                               data-mahasiswa-id="{{ $nilai->mahasiswa->id ?? '' }}"
+                                               data-mahasiswa-nama="{{ $nilai->mahasiswa->nama ?? 'Tidak diketahui' }}"
+                                               data-nilai-id="{{ $nilai->id ?? '' }}"
+                                               data-bs-toggle="modal"
+                                               data-bs-target="#nilaiCpmkModal">Tidak Lulus</a>
                                         @else
-                                            <span class="badge badge-secondary">{{ $nilai->outcome }}</span>
+                                            <a href="#" class="badge badge-secondary nilai-cpmk-modal"
+                                               data-mahasiswa-id="{{ $nilai->mahasiswa->id ?? '' }}"
+                                               data-mahasiswa-nama="{{ $nilai->mahasiswa->nama ?? 'Tidak diketahui' }}"
+                                               data-nilai-id="{{ $nilai->id ?? '' }}"
+                                               data-bs-toggle="modal"
+                                               data-bs-target="#nilaiCpmkModal">{{ $nilai->outcome }}</a>
                                         @endif
                                     </td>
                                 </tr>
@@ -168,4 +206,113 @@
             @endif
         </div>
     </div>
+
+    <!-- Modal Nilai CPMK -->
+    <div class="modal fade" id="nilaiCpmkModal" tabindex="-1" aria-labelledby="nilaiCpmkModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="nilaiCpmkModalLabel">Nilai CPMK Mahasiswa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h3 id="mhs-nama" class="mb-4">Nama Mahasiswa</h3>
+                    <div id="loading-spinner" class="text-center p-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="nilai-cpmk-content" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="table table-row-bordered table-striped gy-5">
+                                <thead>
+                                    <tr class="fw-bold fs-6 text-muted">
+                                        <th>CPMK</th>
+                                        <th>Deskripsi</th>
+                                        <th>Nilai</th>
+                                        <th>Bobot</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="nilai-cpmk-body">
+                                    <!-- Data akan diisi melalui AJAX -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="nilai-cpmk-error" class="alert alert-danger" style="display: none;">
+                        Gagal memuat data nilai CPMK.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const nilaiCpmkButtons = document.querySelectorAll('.nilai-cpmk-modal');
+
+            nilaiCpmkButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const mahasiswaId = this.getAttribute('data-mahasiswa-id');
+                    const mahasiswaNama = this.getAttribute('data-mahasiswa-nama');
+                    const nilaiId = this.getAttribute('data-nilai-id');
+                    const mksId = {{ $matakuliahSemester->id }};
+
+                    // Tampilkan nama mahasiswa di modal
+                    document.getElementById('mhs-nama').textContent = mahasiswaNama;
+
+                    // Reset konten dan tampilkan spinner
+                    document.getElementById('nilai-cpmk-content').style.display = 'none';
+                    document.getElementById('loading-spinner').style.display = 'block';
+                    document.getElementById('nilai-cpmk-error').style.display = 'none';
+                    document.getElementById('nilai-cpmk-body').innerHTML = '';
+
+                    // Ambil data nilai CPMK melalui AJAX
+                    fetch(`/api/nilai/${nilaiId}/cpmk?mks_id=${mksId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Sembunyikan spinner dan tampilkan tabel
+                            document.getElementById('loading-spinner').style.display = 'none';
+                            document.getElementById('nilai-cpmk-content').style.display = 'block';
+
+                            // Isi tabel dengan data
+                            const tableBody = document.getElementById('nilai-cpmk-body');
+
+                            if (data.length === 0) {
+                                tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data nilai CPMK.</td></tr>';
+                                return;
+                            }
+
+                            data.forEach(item => {
+                                const row = document.createElement('tr');
+
+                                row.innerHTML = `
+                                    <td>CPMK-${item.cpmk.nomor}</td>
+                                    <td>${item.cpmk.deskripsi}</td>
+                                    <td>${item.nilai}</td>
+                                    <td>${item.bobot}</td>
+                                `;
+
+                                tableBody.appendChild(row);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching CPMK data:', error);
+                            document.getElementById('loading-spinner').style.display = 'none';
+                            document.getElementById('nilai-cpmk-error').style.display = 'block';
+                        });
+                });
+            });
+        });
+    </script>
+    @endpush
 </x-default-layout>

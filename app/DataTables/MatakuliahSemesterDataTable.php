@@ -16,9 +16,9 @@ class MatakuliahSemesterDataTable extends DataTable
     {
         return (new EloquentDataTable($query))
             ->addColumn('action', function ($row) {
-                // return view('matakuliah-semester.action', compact('row'));
+                return view('matakuliah-semester.action', compact('row'));
                 // for development purposes
-                return view('report.matakuliah-semester.action', compact('row'));
+                // return view('report.matakuliah-semester.action', compact('row'));
             })
             ->addColumn('nama_matakuliah', function ($row) {
                 return $row->mkk->kode . ' - ' . $row->mkk->nama;
@@ -27,7 +27,32 @@ class MatakuliahSemesterDataTable extends DataTable
                 $pengampuList = $row->pengampuDosens->pluck('nama')->toArray();
                 return !empty($pengampuList) ? implode('<br>', $pengampuList) : '-';
             })
-            ->rawColumns(['action', 'pengampu'])
+            // for development purposes
+            // ->addColumn('cpl', function ($row) {
+            //     $cplList = collect();
+
+            //     // Mendapatkan semua CPMK terkait mata kuliah semester
+            //     $cpmks = $row->cpmk;
+
+            //     // Untuk setiap CPMK, ambil CPL terkait
+            //     foreach ($cpmks as $cpmk) {
+            //         // Mendapatkan semua CPL terkait CPMK ini melalui relasi cpmkCpl
+            //         $cpls = $cpmk->cpmkCpl->map(function($cpmkCpl) {
+            //             $cpl = $cpmkCpl->cpl;
+            //             if ($cpl) {
+            //                 return "CPL-{$cpl->nomor}: {$cpl->nama}";
+            //             }
+            //             return null;
+            //         })->filter();
+
+            //         $cplList = $cplList->merge($cpls);
+            //     }
+
+            //     // Hapus duplikat dan format output
+            //     $cplList = $cplList->unique()->values();
+            //     return $cplList->count() > 0 ? $cplList->implode('<br>') : '-';
+            // })
+            ->rawColumns(['action', 'pengampu', 'cpl'])
             ->setRowId('id');
     }
 
@@ -85,6 +110,13 @@ class MatakuliahSemesterDataTable extends DataTable
                 ->orderable(false)
                 ->width(300)
                 ->addClass('text-start'),
+            // for development purposes
+            // Column::computed('cpl')
+            //     ->title('CPL')
+            //     ->searchable(false)
+            //     ->orderable(false)
+            //     ->width(300)
+            //     ->addClass('text-start'),
             Column::computed('action')
                 ->exportable(false)
                 ->printable(false)
