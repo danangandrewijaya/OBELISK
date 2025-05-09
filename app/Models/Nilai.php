@@ -15,6 +15,7 @@ class Nilai extends Model
         'mahasiswa_id',
         'mks_id',
         'kelas',
+        'kelas_id',
         'semester',
         'status',
         'nilai_akhir_angka',
@@ -32,6 +33,11 @@ class Nilai extends Model
     public function mks()
     {
         return $this->belongsTo(MataKuliahSemester::class, 'mks_id');
+    }
+
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class, 'kelas_id');
     }
 
     public function nilaiCpmk()
