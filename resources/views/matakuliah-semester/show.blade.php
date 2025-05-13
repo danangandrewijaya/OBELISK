@@ -95,6 +95,8 @@
                                 <th>Deskripsi</th>
                                 <th>Level Taksonomi</th>
                                 <th>CPL</th>
+                                <th>Rata-Rata Nilai</th>
+                                <th>Rata-Rata Bobot</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -116,6 +118,41 @@
                                         @else
                                             -
                                         @endif
+                                    </td>
+                                    <td>
+                                        @php
+                                            $totalNilaiCpmk = 0;
+                                            $totalBobotCpmk = 0;
+                                            $countCpmk = 0;
+
+                                            foreach ($matakuliahSemester->nilaiMahasiswa as $nilai) {
+                                                foreach ($nilai->nilaiCpmk as $nilaiCpmk) {
+                                                    if ($nilaiCpmk->cpmk_id == $cpmk->id) {
+                                                        // Pastikan menggunakan field nilai_angka (bukan nilai)
+                                                        $totalNilaiCpmk += $nilaiCpmk->nilai_angka ?? 0;
+                                                        $totalBobotCpmk += $nilaiCpmk->nilai_bobot ?? 0;
+                                                        $countCpmk++;
+                                                    }
+                                                }
+                                            }
+
+                                            if ($countCpmk > 0) {
+                                                $rataNilai = number_format($totalNilaiCpmk / $countCpmk, 2);
+                                                $rataBobot = number_format($totalBobotCpmk / $countCpmk, 2);
+                                            } else {
+                                                $rataNilai = 0;
+                                                $rataBobot = 0;
+                                            }
+                                        @endphp
+
+                                        <span class="badge fs-6 {{ $rataNilai >= 70 ? 'badge-success' : ($rataNilai >= 50 ? 'badge-warning' : 'badge-danger') }}">
+                                            {{ $rataNilai }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge fs-6 {{ $rataBobot >= 0.7 ? 'badge-success' : ($rataBobot >= 0.5 ? 'badge-warning' : 'badge-danger') }}">
+                                            {{ $rataBobot }}
+                                        </span>
                                     </td>
                                 </tr>
                             @endforeach
@@ -214,8 +251,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="nilaiCpmkModalLabel">Nilai CPMK Mahasiswa</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
+                </div>                <div class="modal-body">
                     <h3 id="mhs-nama" class="mb-4">Nama Mahasiswa</h3>
                     <div id="loading-spinner" class="text-center p-5">
                         <div class="spinner-border text-primary" role="status">
@@ -223,20 +259,43 @@
                         </div>
                     </div>
                     <div id="nilai-cpmk-content" style="display: none;">
-                        <div class="table-responsive">
-                            <table class="table table-row-bordered table-striped gy-5">
-                                <thead>
-                                    <tr class="fw-bold fs-6 text-muted">
-                                        <th>CPMK</th>
-                                        <th>Deskripsi</th>
-                                        <th>Nilai</th>
-                                        <th>Bobot</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="nilai-cpmk-body">
-                                    <!-- Data akan diisi melalui AJAX -->
-                                </tbody>
-                            </table>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="table-responsive">
+                                    <table class="table table-row-bordered table-striped gy-5">
+                                        <thead>
+                                            <tr class="fw-bold fs-6 text-muted">
+                                                <th>CPMK</th>
+                                                <th>Deskripsi</th>
+                                                <th>Nilai</th>
+                                                <th>Bobot</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="nilai-cpmk-body">
+                                            <!-- Data akan diisi melalui AJAX -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title">Ringkasan</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex flex-column">
+                                            <div class="mb-3">
+                                                <h6>Rata-rata Nilai:</h6>
+                                                <div id="rata-nilai" class="fs-2 fw-bold text-primary">-</div>
+                                            </div>
+                                            <div>
+                                                <h6>Rata-rata Bobot:</h6>
+                                                <div id="rata-bobot" class="fs-2 fw-bold text-success">-</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div id="nilai-cpmk-error" class="alert alert-danger" style="display: none;">
@@ -263,13 +322,13 @@
                     const mksId = {{ $matakuliahSemester->id }};
 
                     // Tampilkan nama mahasiswa di modal
-                    document.getElementById('mhs-nama').textContent = mahasiswaNama;
-
-                    // Reset konten dan tampilkan spinner
+                    document.getElementById('mhs-nama').textContent = mahasiswaNama;                    // Reset konten dan tampilkan spinner
                     document.getElementById('nilai-cpmk-content').style.display = 'none';
                     document.getElementById('loading-spinner').style.display = 'block';
                     document.getElementById('nilai-cpmk-error').style.display = 'none';
                     document.getElementById('nilai-cpmk-body').innerHTML = '';
+                    document.getElementById('rata-nilai').textContent = '-';
+                    document.getElementById('rata-bobot').textContent = '-';
 
                     // Ambil data nilai CPMK melalui AJAX
                     fetch(`/api/nilai/${nilaiId}/cpmk?mks_id=${mksId}`)
@@ -285,25 +344,43 @@
                             document.getElementById('nilai-cpmk-content').style.display = 'block';
 
                             // Isi tabel dengan data
-                            const tableBody = document.getElementById('nilai-cpmk-body');
-
-                            if (data.length === 0) {
+                            const tableBody = document.getElementById('nilai-cpmk-body');                            if (data.length === 0) {
                                 tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data nilai CPMK.</td></tr>';
+                                document.getElementById('rata-nilai').textContent = '-';
+                                document.getElementById('rata-bobot').textContent = '-';
                                 return;
-                            }
+                            }// Hitung rata-rata nilai dan bobot
+                            let totalNilai = 0;
+                            let totalBobot = 0;
 
                             data.forEach(item => {
                                 const row = document.createElement('tr');
+                                // Pastikan nilai dikonversi ke angka dengan parseFloat
+                                // dan nilai default 0 jika null/undefined/NaN
+                                const nilai = parseFloat(item.nilai) || 0;
+                                const bobot = parseFloat(item.bobot) || 0;
+
+                                totalNilai += nilai;
+                                totalBobot += bobot;
 
                                 row.innerHTML = `
                                     <td>CPMK-${item.cpmk.nomor}</td>
                                     <td>${item.cpmk.deskripsi}</td>
-                                    <td>${item.nilai}</td>
-                                    <td>${item.bobot}</td>
+                                    <td>${nilai.toFixed(2)}</td>
+                                    <td>${bobot.toFixed(2)}</td>
                                 `;
 
                                 tableBody.appendChild(row);
                             });
+
+                            // Tampilkan rata-rata
+                            if (data.length > 0) {
+                                const avgNilai = (totalNilai / data.length).toFixed(2);
+                                const avgBobot = (totalBobot / data.length).toFixed(2);
+
+                                document.getElementById('rata-nilai').textContent = avgNilai;
+                                document.getElementById('rata-bobot').textContent = avgBobot;
+                            }
                         })
                         .catch(error => {
                             console.error('Error fetching CPMK data:', error);

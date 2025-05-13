@@ -75,7 +75,7 @@
 			<!--begin:Menu item-->
 			<div class="menu-item">
 				<!--begin:Menu link-->
-				<a class="menu-link {{ request()->routeIs('report.matakuliah-semester.index') ? 'active' : '' }}" href="{{ route('report.matakuliah-semester.index') }}">
+				<a class="menu-link {{ request()->routeIs('master.matakuliah-semester.index') ? 'active' : '' }}" href="{{ route('master.matakuliah-semester.index') }}">
 					<span class="menu-icon">{!! getIcon('briefcase', 'fs-2') !!}</span>
 					<span class="menu-title">Mata Kuliah</span>
 				</a>
