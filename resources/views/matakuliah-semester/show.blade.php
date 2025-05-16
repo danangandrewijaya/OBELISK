@@ -187,6 +187,7 @@
                                 <th>Nilai Akhir Angka</th>
                                 <th>Nilai Akhir Huruf</th>
                                 <th>Outcome</th>
+                                <th>Revisi CPMK</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -229,6 +230,11 @@
                                                data-nilai-id="{{ $nilai->id ?? '' }}"
                                                data-bs-toggle="modal"
                                                data-bs-target="#nilaiCpmkModal">{{ $nilai->outcome }}</a>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($nilai->outcome == 'REMIDI CPMK')
+                                            <span class="badge badge-secondary">Belum Perbaikan</span>
                                         @endif
                                     </td>
                                 </tr>
