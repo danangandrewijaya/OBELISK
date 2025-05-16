@@ -260,7 +260,7 @@
                     </div>
                     <div id="nilai-cpmk-content" style="display: none;">
                         <div class="row">
-                            <div class="col-md-8">
+                            <div class="col-md-12">
                                 <div class="table-responsive">
                                     <table class="table table-row-bordered table-striped gy-5">
                                         <thead>
@@ -277,7 +277,8 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            {{-- Hide --}}
+                            {{-- <div class="col-md-4">
                                 <div class="card">
                                     <div class="card-header">
                                         <h5 class="card-title">Ringkasan</h5>
@@ -295,7 +296,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                     <div id="nilai-cpmk-error" class="alert alert-danger" style="display: none;">
@@ -327,8 +328,8 @@
                     document.getElementById('loading-spinner').style.display = 'block';
                     document.getElementById('nilai-cpmk-error').style.display = 'none';
                     document.getElementById('nilai-cpmk-body').innerHTML = '';
-                    document.getElementById('rata-nilai').textContent = '-';
-                    document.getElementById('rata-bobot').textContent = '-';
+                    // document.getElementById('rata-nilai').textContent = '-';
+                    // document.getElementById('rata-bobot').textContent = '-';
 
                     // Ambil data nilai CPMK melalui AJAX
                     fetch(`/api/nilai/${nilaiId}/cpmk?mks_id=${mksId}`)
@@ -374,13 +375,13 @@
                             });
 
                             // Tampilkan rata-rata
-                            if (data.length > 0) {
-                                const avgNilai = (totalNilai / data.length).toFixed(2);
-                                const avgBobot = (totalBobot / data.length).toFixed(2);
+                            // if (data.length > 0) {
+                            //     const avgNilai = (totalNilai / data.length).toFixed(2);
+                            //     const avgBobot = (totalBobot / data.length).toFixed(2);
 
-                                document.getElementById('rata-nilai').textContent = avgNilai;
-                                document.getElementById('rata-bobot').textContent = avgBobot;
-                            }
+                            //     document.getElementById('rata-nilai').textContent = avgNilai;
+                            //     document.getElementById('rata-bobot').textContent = avgBobot;
+                            // }
                         })
                         .catch(error => {
                             console.error('Error fetching CPMK data:', error);
