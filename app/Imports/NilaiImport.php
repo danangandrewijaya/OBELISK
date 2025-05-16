@@ -74,7 +74,7 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
                     $cpmkIndex = 0;
                     $cpmkDataIndex = 0;
 
-                    for ($i = 14; $i < 14 + ($cpmkCount * 2); $i++) {
+                    for ($i = $rowNilaiAkhirAngka + 4; $i < 14 + ($cpmkCount * 2); $i++) {
                         if (isset($row[$i]) && !is_null($row[$i])) {
                             if ($cpmkIndex % 2 === 0) {
                                 // This is a CPMK nilai_angka
