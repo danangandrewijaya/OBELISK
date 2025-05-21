@@ -64,29 +64,28 @@
                                                 <th>SKS</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            @foreach($availableMkks as $mkk)
-                                                @if(in_array($cpl->id, $mkkCplConnections[$mkk->id] ?? []))
+                                        <tbody>                                            @foreach($availableMkss as $mks)
+                                                @if(in_array($cpl->id, $mksCplConnections[$mks->id] ?? []))
                                                 <tr>
                                                     <td>
                                                         <div class="form-check form-check-sm form-check-custom form-check-solid">
                                                             <input class="form-check-input cpl-mkk-checkbox"
                                                                 type="checkbox"
                                                                 name="cpl_selections[{{ $cpl->id }}][]"
-                                                                value="{{ $mkk->id }}"
+                                                                value="{{ $mks->id }}"
                                                                 data-cpl-id="{{ $cpl->id }}"
-                                                                {{ in_array($mkk->id, $selections[$cpl->id] ?? []) ? 'checked' : '' }}
+                                                                {{ in_array($mks->id, $selections[$cpl->id] ?? []) ? 'checked' : '' }}
                                                             />
                                                         </div>
                                                     </td>
-                                                    <td>{{ $mkk->kode }}</td>
-                                                    <td>{{ $mkk->nama }}</td>
-                                                    <td>{{ $mkk->sks }}</td>
+                                                    <td>{{ $mks->mkk->kode }}</td>
+                                                    <td>{{ $mks->mkk->nama }} ({{ $mks->tahun }}-{{ $mks->semester == 1 ? 'Ganjil' : 'Genap' }})</td>
+                                                    <td>{{ $mks->mkk->sks }}</td>
                                                 </tr>
                                                 @endif
                                             @endforeach
 
-                                            @if(!count(array_filter($mkkCplConnections, function($ids) use ($cpl) { return in_array($cpl->id, $ids); })))
+                                            @if(!count(array_filter($mksCplConnections, function($ids) use ($cpl) { return in_array($cpl->id, $ids); })))
                                                 <tr>
                                                     <td colspan="4" class="text-center text-muted">
                                                         Tidak ada mata kuliah yang terhubung dengan CPL ini
@@ -115,8 +114,7 @@
 
     @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Handle select all checkboxes
+        document.addEventListener('DOMContentLoaded', function() {            // Handle select all checkboxes
             document.querySelectorAll('.cpl-select-all').forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     const cplId = this.dataset.cplId;

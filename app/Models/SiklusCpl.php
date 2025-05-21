@@ -9,12 +9,10 @@ class SiklusCpl extends Model
 {
     use HasFactory;
 
-    protected $table = 'trx_siklus_cpl';
-
-    protected $fillable = [
+    protected $table = 'trx_siklus_cpl';    protected $fillable = [
         'siklus_id',
         'cpl_id',
-        'mata_kuliah_kurikulum_id'
+        'mata_kuliah_semester_id'
     ];
 
     // Relationship with Siklus
@@ -27,11 +25,9 @@ class SiklusCpl extends Model
     public function cpl()
     {
         return $this->belongsTo(Cpl::class);
-    }
-
-    // Relationship with MataKuliahKurikulum
-    public function mataKuliahKurikulum()
+    }    // Relationship with MataKuliahSemester
+    public function mataKuliahSemester()
     {
-        return $this->belongsTo(MataKuliahKurikulum::class);
+        return $this->belongsTo(MataKuliahSemester::class);
     }
 }

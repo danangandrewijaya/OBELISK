@@ -38,13 +38,22 @@ class Siklus extends Model
                 ->from((new SiklusCpl())->getTable())
                 ->where('siklus_id', $this->id);
         })->get();
-    }
-
-    // Get MataKuliahKurikulum for a specific CPL in this Siklus
+    }    // Get MataKuliahKurikulum for a specific CPL in this Siklus (legacy method)
     public function getMataKuliahKurikulumsByCpl($cplId)
     {
         return MataKuliahKurikulum::whereIn('id', function($query) use ($cplId) {
             $query->select('mata_kuliah_kurikulum_id')
+                ->from((new SiklusCpl())->getTable())
+                ->where('siklus_id', $this->id)
+                ->where('cpl_id', $cplId);
+        })->get();
+    }
+
+    // Get MataKuliahSemester for a specific CPL in this Siklus
+    public function getMataKuliahSemestersByCpl($cplId)
+    {
+        return MataKuliahSemester::whereIn('id', function($query) use ($cplId) {
+            $query->select('mata_kuliah_semester_id')
                 ->from((new SiklusCpl())->getTable())
                 ->where('siklus_id', $this->id)
                 ->where('cpl_id', $cplId);
