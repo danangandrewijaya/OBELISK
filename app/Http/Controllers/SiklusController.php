@@ -116,8 +116,9 @@ class SiklusController extends Controller
                     ->join('mst_cpmk', 'trx_cpmk_cpl.cpmk_id', '=', 'mst_cpmk.id')
                     ->whereRaw('mst_cpmk.mks_id = mst_mata_kuliah_semester.id');
             })
-            ->orderBy('tahun')
-            ->orderBy('semester')
+            ->orderBy('mkk_id') // First sort by MKK (mata kuliah kurikulum)
+            ->orderBy('tahun')  // Then by year
+            ->orderBy('semester') // Then by semester
             ->get();        // Get current selections
         $selections = [];
         foreach($cpls as $cpl) {

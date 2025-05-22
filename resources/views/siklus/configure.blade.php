@@ -62,32 +62,56 @@
                                                 <th>Kode</th>
                                                 <th>Nama Mata Kuliah</th>
                                                 <th>SKS</th>
+                                                <th>Semester</th>
                                             </tr>
                                         </thead>
-                                        <tbody>                                            @foreach($availableMkss as $mks)
-                                                @if(in_array($cpl->id, $mksCplConnections[$mks->id] ?? []))
-                                                <tr>
-                                                    <td>
-                                                        <div class="form-check form-check-sm form-check-custom form-check-solid">
-                                                            <input class="form-check-input cpl-mkk-checkbox"
-                                                                type="checkbox"
-                                                                name="cpl_selections[{{ $cpl->id }}][]"
-                                                                value="{{ $mks->id }}"
-                                                                data-cpl-id="{{ $cpl->id }}"
-                                                                {{ in_array($mks->id, $selections[$cpl->id] ?? []) ? 'checked' : '' }}
-                                                            />
-                                                        </div>
-                                                    </td>
-                                                    <td>{{ $mks->mkk->kode }}</td>
-                                                    <td>{{ $mks->mkk->nama }} ({{ $mks->tahun }}-{{ $mks->semester == 1 ? 'Ganjil' : 'Genap' }})</td>
-                                                    <td>{{ $mks->mkk->sks }}</td>
-                                                </tr>
-                                                @endif
-                                            @endforeach
+                                        <tbody>
+                                            @php
+                                                // Group MKSs by their MKK ID
+                                                $groupedMkss = [];
+                                                foreach($availableMkss as $mks) {
+                                                    if(in_array($cpl->id, $mksCplConnections[$mks->id] ?? [])) {
+                                                        if(!isset($groupedMkss[$mks->mkk->id])) {
+                                                            $groupedMkss[$mks->mkk->id] = [
+                                                                'mkk' => $mks->mkk,
+                                                                'items' => []
+                                                            ];
+                                                        }
+                                                        $groupedMkss[$mks->mkk->id]['items'][] = $mks;
+                                                    }
+                                                }
+                                            @endphp
 
-                                            @if(!count(array_filter($mksCplConnections, function($ids) use ($cpl) { return in_array($cpl->id, $ids); })))
+                                            @if(count($groupedMkss) > 0)
+                                                @foreach($groupedMkss as $mkkId => $group)
+                                                    <tr class="bg-light">
+                                                        <td colspan="5" class="fw-bold">
+                                                            {{ $group['mkk']->kode }} - {{ $group['mkk']->nama }} ({{ $group['mkk']->sks }} SKS)
+                                                        </td>
+                                                    </tr>
+                                                    @foreach($group['items'] as $mks)
+                                                        <tr>
+                                                            <td>
+                                                                <div class="form-check form-check-sm form-check-custom form-check-solid">
+                                                                    <input class="form-check-input cpl-mkk-checkbox"
+                                                                        type="checkbox"
+                                                                        name="cpl_selections[{{ $cpl->id }}][]"
+                                                                        value="{{ $mks->id }}"
+                                                                        data-cpl-id="{{ $cpl->id }}"
+                                                                        {{ in_array($mks->id, $selections[$cpl->id] ?? []) ? 'checked' : '' }}
+                                                                    />
+                                                                </div>
+                                                            </td>
+                                                            <td>{{ $mks->mkk->kode }}</td>
+                                                            <td>{{ $mks->mkk->nama }}</td>
+                                                            <td>{{ $mks->mkk->sks }}</td>
+                                                            <td>{{ $mks->tahun }}-{{ $mks->semester == 1 ? 'Ganjil' : 'Genap' }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                @endforeach
+                                            @else
                                                 <tr>
-                                                    <td colspan="4" class="text-center text-muted">
+                                                    <td colspan="5" class="text-center text-muted">
                                                         Tidak ada mata kuliah yang terhubung dengan CPL ini
                                                     </td>
                                                 </tr>
