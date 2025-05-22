@@ -26,8 +26,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
 
-// Route untuk nilai CPMK
+// Route untuk nilai CPMK dan keterangan
 Route::get('/nilai/{id}/cpmk', [NilaiController::class, 'getCpmkValues']);
+Route::get('/nilai/{id}', [NilaiController::class, 'getNilai']);
+Route::post('/nilai/{id}/keterangan', [NilaiController::class, 'updateKeterangan']);
 
 Route::prefix('v1')->group(function () {
 

@@ -188,6 +188,7 @@
                                 <th>Nilai Akhir Huruf</th>
                                 <th>Outcome</th>
                                 <th>Revisi CPMK</th>
+                                <th>Keterangan</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -234,7 +235,17 @@
                                     </td>
                                     <td>
                                         @if($nilai->outcome == 'REMIDI CPMK')
-                                            <span class="badge badge-secondary">Belum Perbaikan</span>
+                                            <a href="#" class="badge badge-warning nilai-cpmk-modal"
+                                               data-mahasiswa-id="{{ $nilai->mahasiswa->id ?? '' }}"
+                                               data-mahasiswa-nama="{{ $nilai->mahasiswa->nama ?? 'Tidak diketahui' }}"
+                                               data-nilai-id="{{ $nilai->id ?? '' }}"
+                                               data-bs-toggle="modal"
+                                               data-bs-target="#nilaiCpmkModal">Belum Perbaikan</a>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($nilai->outcome == 'REMIDI CPMK')
+                                            {{ $nilai->keterangan ?? '-' }}
                                         @endif
                                     </td>
                                 </tr>
@@ -309,6 +320,19 @@
                         Gagal memuat data nilai CPMK.
                     </div>
                 </div>
+                <div id="keterangan-form" class="mt-4 border-top pt-4" style="display: none;">
+                    <h5>Keterangan Remidi CPMK</h5>
+                    <form id="keterangan-form-element">
+                        <input type="hidden" name="nilai_id" id="keterangan-nilai-id">
+                        <div class="form-group mb-3">
+                            <label for="keterangan" class="form-label">Keterangan</label>
+                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3" placeholder="Masukkan keterangan untuk remidi CPMK..."></textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary" id="save-keterangan">Simpan Keterangan</button>
+                        </div>
+                    </form>
+                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
@@ -327,15 +351,41 @@
                     const mahasiswaNama = this.getAttribute('data-mahasiswa-nama');
                     const nilaiId = this.getAttribute('data-nilai-id');
                     const mksId = {{ $matakuliahSemester->id }};
+                    const isRemidiCpmk = this.textContent.trim() === 'Remidi CPMK' || this.textContent.trim() === 'Belum Perbaikan';
 
                     // Tampilkan nama mahasiswa di modal
-                    document.getElementById('mhs-nama').textContent = mahasiswaNama;                    // Reset konten dan tampilkan spinner
+                    document.getElementById('mhs-nama').textContent = mahasiswaNama;
+
+                    // Reset konten dan tampilkan spinner
                     document.getElementById('nilai-cpmk-content').style.display = 'none';
                     document.getElementById('loading-spinner').style.display = 'block';
                     document.getElementById('nilai-cpmk-error').style.display = 'none';
                     document.getElementById('nilai-cpmk-body').innerHTML = '';
+                    document.getElementById('keterangan-form').style.display = 'none';
                     // document.getElementById('rata-nilai').textContent = '-';
                     // document.getElementById('rata-bobot').textContent = '-';
+
+                    // Setup keterangan form if needed
+                    if (isRemidiCpmk) {
+                        document.getElementById('keterangan-nilai-id').value = nilaiId;
+
+                        // Fetch current keterangan value
+                        fetch(`/api/nilai/${nilaiId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data && data.keterangan) {
+                                    document.getElementById('keterangan').value = data.keterangan;
+                                } else {
+                                    document.getElementById('keterangan').value = '';
+                                }
+                                document.getElementById('keterangan-form').style.display = 'block';
+                            })
+                            .catch(error => {
+                                console.error('Error fetching keterangan:', error);
+                                document.getElementById('keterangan').value = '';
+                                document.getElementById('keterangan-form').style.display = 'block';
+                            });
+                    }
 
                     // Ambil data nilai CPMK melalui AJAX
                     fetch(`/api/nilai/${nilaiId}/cpmk?mks_id=${mksId}`)
@@ -351,12 +401,16 @@
                             document.getElementById('nilai-cpmk-content').style.display = 'block';
 
                             // Isi tabel dengan data
-                            const tableBody = document.getElementById('nilai-cpmk-body');                            if (data.length === 0) {
+                            const tableBody = document.getElementById('nilai-cpmk-body');
+
+                            if (data.length === 0) {
                                 tableBody.innerHTML = '<tr><td colspan="4" class="text-center">Tidak ada data nilai CPMK.</td></tr>';
                                 document.getElementById('rata-nilai').textContent = '-';
                                 document.getElementById('rata-bobot').textContent = '-';
                                 return;
-                            }// Hitung rata-rata nilai dan bobot
+                            }
+
+                            // Hitung rata-rata nilai dan bobot
                             let totalNilai = 0;
                             let totalBobot = 0;
 
@@ -394,6 +448,69 @@
                             document.getElementById('loading-spinner').style.display = 'none';
                             document.getElementById('nilai-cpmk-error').style.display = 'block';
                         });
+                });
+            });
+
+            // Handle keterangan form submission
+            document.getElementById('keterangan-form-element').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const nilaiId = document.getElementById('keterangan-nilai-id').value;
+                const keterangan = document.getElementById('keterangan').value;
+                const saveBtn = document.getElementById('save-keterangan');
+
+                // Disable button during save
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Menyimpan...';
+
+                // Send AJAX request to update keterangan
+                fetch(`/api/nilai/${nilaiId}/keterangan`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        keterangan: keterangan
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Re-enable button
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Simpan Keterangan';
+
+                    // Show success message
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'alert alert-success mt-2';
+                    successMsg.textContent = 'Keterangan berhasil disimpan';
+                    document.getElementById('keterangan-form').appendChild(successMsg);
+
+                    // Remove success message after 3 seconds
+                    setTimeout(() => {
+                        successMsg.remove();
+                    }, 3000);
+
+                    // Update the keterangan displayed in the table
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error saving keterangan:', error);
+
+                    // Re-enable button
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Simpan Keterangan';
+
+                    // Show error message
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'alert alert-danger mt-2';
+                    errorMsg.textContent = 'Gagal menyimpan keterangan';
+                    document.getElementById('keterangan-form').appendChild(errorMsg);
+
+                    // Remove error message after 3 seconds
+                    setTimeout(() => {
+                        errorMsg.remove();
+                    }, 3000);
                 });
             });
         });

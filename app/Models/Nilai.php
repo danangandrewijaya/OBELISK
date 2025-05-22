@@ -22,6 +22,7 @@ class Nilai extends Model
         'nilai_akhir_huruf',
         'nilai_bobot',
         'outcome',
+        'keterangan',
         'is_terbaik'
     ];
 

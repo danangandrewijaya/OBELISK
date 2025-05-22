@@ -8,8 +8,7 @@ use App\Models\NilaiCpmk;
 use Illuminate\Http\Request;
 
 class NilaiController extends Controller
-{
-    /**
+{    /**
      * Get CPMK values for a specific nilai record
      */
     public function getCpmkValues(Request $request, $id)
@@ -33,5 +32,39 @@ class NilaiController extends Controller
             });
 
         return response()->json($nilaiCpmk);
+    }
+
+    /**
+     * Get a specific nilai record details
+     */
+    public function getNilai($id)
+    {
+        $nilai = Nilai::findOrFail($id);
+
+        return response()->json([
+            'id' => $nilai->id,
+            'outcome' => $nilai->outcome,
+            'keterangan' => $nilai->keterangan
+        ]);
+    }
+
+    /**
+     * Update keterangan for a specific nilai record
+     */
+    public function updateKeterangan(Request $request, $id)
+    {
+        $request->validate([
+            'keterangan' => 'required|string'
+        ]);
+
+        $nilai = Nilai::findOrFail($id);
+        $nilai->keterangan = $request->keterangan;
+        $nilai->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Keterangan berhasil diperbarui',
+            'keterangan' => $nilai->keterangan
+        ]);
     }
 }
