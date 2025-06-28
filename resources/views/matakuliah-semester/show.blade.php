@@ -235,12 +235,12 @@
                                     </td>
                                     <td>
                                         @if($nilai->outcome == 'REMIDI CPMK')
-                                            <a href="#" class="badge badge-warning nilai-cpmk-modal"
+                                            <a href="#" class="badge badge-{{ $nilai->keterangan ? 'primary' : 'warning' }} nilai-cpmk-modal"
                                                data-mahasiswa-id="{{ $nilai->mahasiswa->id ?? '' }}"
                                                data-mahasiswa-nama="{{ $nilai->mahasiswa->nama ?? 'Tidak diketahui' }}"
                                                data-nilai-id="{{ $nilai->id ?? '' }}"
                                                data-bs-toggle="modal"
-                                               data-bs-target="#nilaiCpmkModal">Belum Perbaikan</a>
+                                               data-bs-target="#nilaiCpmkModal">{{ $nilai->keterangan ? 'Sudah Perbaikan' : 'Belum Perbaikan' }}</a>
                                         @endif
                                     </td>
                                     <td>
@@ -268,7 +268,8 @@
                 <div class="modal-header">
                     <h5 class="modal-title" id="nilaiCpmkModalLabel">Nilai CPMK Mahasiswa</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>                <div class="modal-body">
+                </div>
+                <div class="modal-body">
                     <h3 id="mhs-nama" class="mb-4">Nama Mahasiswa</h3>
                     <div id="loading-spinner" class="text-center p-5">
                         <div class="spinner-border text-primary" role="status">
@@ -319,19 +320,19 @@
                     <div id="nilai-cpmk-error" class="alert alert-danger" style="display: none;">
                         Gagal memuat data nilai CPMK.
                     </div>
-                </div>
-                <div id="keterangan-form" class="mt-4 border-top pt-4" style="display: none;">
-                    <h5>Keterangan Remidi CPMK</h5>
-                    <form id="keterangan-form-element">
-                        <input type="hidden" name="nilai_id" id="keterangan-nilai-id">
-                        <div class="form-group mb-3">
-                            <label for="keterangan" class="form-label">Keterangan</label>
-                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3" placeholder="Masukkan keterangan untuk remidi CPMK..."></textarea>
-                        </div>
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-primary" id="save-keterangan">Simpan Keterangan</button>
-                        </div>
-                    </form>
+                    <div id="keterangan-form" class="mt-4 border-top pt-4" style="display: none;">
+                        <h5>Remidi CPMK</h5>
+                        <form id="keterangan-form-element">
+                            <input type="hidden" name="nilai_id" id="keterangan-nilai-id">
+                            <div class="form-group mb-3">
+                                <label for="keterangan" class="form-label">Keterangan</label>
+                                <textarea class="form-control" id="keterangan" name="keterangan" rows="3" placeholder="Masukkan keterangan untuk remidi CPMK..."></textarea>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary" id="save-keterangan">Simpan Keterangan</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -351,7 +352,7 @@
                     const mahasiswaNama = this.getAttribute('data-mahasiswa-nama');
                     const nilaiId = this.getAttribute('data-nilai-id');
                     const mksId = {{ $matakuliahSemester->id }};
-                    const isRemidiCpmk = this.textContent.trim() === 'Remidi CPMK' || this.textContent.trim() === 'Belum Perbaikan';
+                    const isRemidiCpmk = this.textContent.trim() === 'Remidi CPMK' || this.textContent.trim() === 'Belum Perbaikan' || this.textContent.trim() === 'Sudah Perbaikan';
 
                     // Tampilkan nama mahasiswa di modal
                     document.getElementById('mhs-nama').textContent = mahasiswaNama;
