@@ -33,15 +33,35 @@ class AuthenticatedSessionController extends Controller
     public function store(LoginRequest $request)
     {
         $request->authenticate();
-
         $request->session()->regenerate();
 
-        $request->user()->update([
+        $user = $request->user();
+        $user->update([
             'last_login_at' => Carbon::now()->toDateTimeString(),
             'last_login_ip' => $request->getClientIp()
         ]);
 
-        return redirect()->intended(RouteServiceProvider::HOME);
+        $roles = $user->roles->pluck('name');
+        // dd($roles); // Debugging line, remove in production
+        if ($roles->count() === 1) {
+            // Jika hanya satu role, set ke session dan redirect sesuai role
+            $role = $roles->first();
+            session(['active_role' => $role]);
+            // Redirect sesuai role, sesuaikan route berikut
+            // if ($role === 'admin') {
+            //     return redirect()->route('admin.dashboard');
+            // } elseif ($role === 'user') {
+            //     return redirect()->route('user.dashboard');
+            // } else {
+                return redirect()->intended(RouteServiceProvider::HOME);
+            // }
+        } elseif ($roles->count() > 1) {
+            // Jika lebih dari satu role, redirect ke halaman pemilihan role
+            return redirect()->route('auth.choose-role');
+        } else {
+            // Tidak ada role, fallback
+            return redirect()->intended(RouteServiceProvider::HOME);
+        }
     }
 
     /**
