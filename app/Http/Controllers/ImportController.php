@@ -31,8 +31,14 @@ class ImportController extends Controller
      */
     public function showImportForm()
     {
+        $user = auth()->user();
+        $role = session('active_role');
+        if($role === 'dosen') {
+            return redirect('/')->with('warning', 'Fitur impor untuk dosen belum tersedia.');
+        }
         $dosens = Dosen::orderBy('nama')->get();
-        return view('import.form', compact('dosens'));
+
+        return view('import.form', compact('dosens', 'role'));
     }
 
     /**
@@ -62,6 +68,7 @@ class ImportController extends Controller
 
             // Tentukan apakah ini adalah pending preview
             $pendingPreview = $request->has('pending_preview');
+            // dd($previewData);
 
             return view('import.preview', [
                 'preview' => $preview,

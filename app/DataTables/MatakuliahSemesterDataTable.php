@@ -71,6 +71,14 @@ class MatakuliahSemesterDataTable extends DataTable
             $query->where('semester', $this->request()->get('semester'));
         }
 
+        $role = session('active_role');
+        $dosenId = session('dosen_id');
+        if ($role === 'dosen') {
+            $query->whereHas('pengampuDosens', function ($q) use ($dosenId) {
+                $q->where('dosen_id', $dosenId);
+            });
+        }
+
         return $query;
     }
 

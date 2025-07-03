@@ -20,6 +20,7 @@
                     <input type="file" name="excel_file" id="excel_file" accept=".xlsx,.xls" class="form-control form-control-solid">
                 </div>
 
+                @if($role === 'admin')
                 <div class="mb-5">
                     <label class="form-label required" for="pengampu_ids">Pilih Pengampu</label>
                     <select name="pengampu_ids[]" id="pengampu_ids" class="form-select form-select-solid" multiple="multiple" data-control="select2" data-placeholder="Pilih pengampu...">
@@ -31,6 +32,7 @@
                         <div class="text-danger mt-2">{{ $errors->first('pengampu_ids') }}</div>
                     @endif
                 </div>
+                @endif
 
                 @if(session('success'))
                     <div class="alert alert-success d-flex align-items-center p-5 mb-5">

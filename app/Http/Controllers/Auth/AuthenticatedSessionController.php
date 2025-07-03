@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Dosen;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -47,14 +48,13 @@ class AuthenticatedSessionController extends Controller
             // Jika hanya satu role, set ke session dan redirect sesuai role
             $role = $roles->first();
             session(['active_role' => $role]);
-            // Redirect sesuai role, sesuaikan route berikut
-            // if ($role === 'admin') {
-            //     return redirect()->route('admin.dashboard');
-            // } elseif ($role === 'user') {
-            //     return redirect()->route('user.dashboard');
-            // } else {
+            if($role === 'dosen') {
+                $nip = strstr(auth()->user()->email, '@', true);
+                $user = Dosen::where('nip', $nip)->first();
+                $dosen = Dosen::where('id', $user->id)->first();
+                session(['dosen_id' => $dosen->id]);
+            }
                 return redirect()->intended(RouteServiceProvider::HOME);
-            // }
         } elseif ($roles->count() > 1) {
             // Jika lebih dari satu role, redirect ke halaman pemilihan role
             return redirect()->route('auth.choose-role');
