@@ -369,9 +369,9 @@
                     // document.getElementById('rata-bobot').textContent = '-';
 
                     // Setup keterangan form if needed
-                    // const isDosen = @json(session('active_role') === 'dosen');
-                    // console.log('isDosen:', isDosen);
-                    if (isRemidiCpmk) {
+
+                    const isDosen = @json(session('active_role') === 'dosen');
+                    if (isRemidiCpmk && isDosen) {
                         document.getElementById('keterangan-nilai-id').value = nilaiId;
 
                         // Fetch current keterangan value
@@ -383,7 +383,6 @@
                                 } else {
                                     document.getElementById('keterangan').value = '';
                                 }
-                                if
                                 document.getElementById('keterangan-form').style.display = 'block';
                             })
                             .catch(error => {
