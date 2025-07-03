@@ -12,9 +12,11 @@
                 <a href="{{ route('master.matakuliah-semester.index') }}" class="btn btn-sm btn-secondary me-2">
                     <i class="fas fa-arrow-left"></i> Kembali
                 </a>
+                @if(session('active_role') !== 'dosen')
                 <a href="{{ route('master.matakuliah-semester.edit', $matakuliahSemester) }}" class="btn btn-sm btn-warning">
                     <i class="fas fa-edit"></i> Edit
                 </a>
+                @endif
             </div>
         </div>
         <div class="card-body">
@@ -367,6 +369,8 @@
                     // document.getElementById('rata-bobot').textContent = '-';
 
                     // Setup keterangan form if needed
+                    // const isDosen = @json(session('active_role') === 'dosen');
+                    // console.log('isDosen:', isDosen);
                     if (isRemidiCpmk) {
                         document.getElementById('keterangan-nilai-id').value = nilaiId;
 
@@ -379,6 +383,7 @@
                                 } else {
                                     document.getElementById('keterangan').value = '';
                                 }
+                                if
                                 document.getElementById('keterangan-form').style.display = 'block';
                             })
                             .catch(error => {

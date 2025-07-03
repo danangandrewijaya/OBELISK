@@ -2,6 +2,7 @@
     <a href="{{ route('master.matakuliah-semester.show', $row) }}" class="btn btn-sm btn-info" title="Detail">
         <i class="fas fa-eye"></i>
     </a>
+    @if(session('active_role') !== 'dosen')
     <a href="{{ route('master.matakuliah-semester.edit', $row) }}" class="btn btn-sm btn-warning" title="Edit">
         <i class="fas fa-edit"></i>
     </a>
@@ -9,6 +10,7 @@
         onclick="deleteConfirmation('{{ route('master.matakuliah-semester.destroy', $row) }}')">
         <i class="fas fa-trash"></i>
     </button>
+    @endif
 </div>
 
 @once
