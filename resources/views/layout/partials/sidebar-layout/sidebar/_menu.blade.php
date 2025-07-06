@@ -93,6 +93,7 @@
 			</div>
 			<!--end:Menu item-->
 			<!--begin:Menu item-->
+            @if(session('active_role') === 'admin')
 			<div class="menu-item">
 				<!--begin:Menu link-->
 				<a class="menu-link {{ request()->routeIs('siklus.index') ? 'active' : '' }}" href="{{ route('siklus.index') }}">
@@ -101,8 +102,10 @@
 				</a>
 				<!--end:Menu link-->
 			</div>
+            @endif
 			<!--end:Menu item-->
 
+            @if(session('active_role') === 'admin')
 			<!--begin:Menu item-->
 			<div class="menu-item pt-5">
 				<!--begin:Menu content-->
@@ -140,6 +143,7 @@
 				<!--end:Menu sub-->
 			</div>
 			<!--end:Menu item-->
+            @endif
 
 			<!--begin:Menu item-->
 			{{-- <div data-kt-menu-trigger="click" class="menu-item menu-accordion {{ request()->routeIs('user-management.*') ? 'here show' : '' }}">

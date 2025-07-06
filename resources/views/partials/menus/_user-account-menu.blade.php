@@ -102,6 +102,11 @@
         <a href="#" class="menu-link px-5">My Statements</a>
     </div> --}}
     <!--end::Menu item-->
+    <!--begin::Menu item-->
+    <div class="menu-item px-5">
+        <a href="{{ route('auth.choose-role') }}" class="menu-link px-5">Pilih Role</a>
+    </div>
+    <!--end::Menu item-->
     <!--begin::Menu separator-->
     <div class="separator my-2"></div>
     <!--end::Menu separator-->
