@@ -96,7 +96,8 @@
                                 <th>CPMK</th>
                                 <th>Deskripsi</th>
                                 <th>Level Taksonomi</th>
-                                <th>CPL</th>
+                                <th>CPL (Capaian Pembelajaran Lulusan)</th>
+                                <th>PI (Performance Indicators)</th>
                                 <th>Rata-Rata Nilai</th>
                                 <th>Rata-Rata Bobot</th>
                                 <th>Analisis Pelaksanaan</th>
@@ -117,6 +118,19 @@
                                                 @foreach($cpmk->cpmkCpl as $cpmkCpl)
                                                     @if($cpmkCpl->cpl)
                                                         <li>CPL-{{ $cpmkCpl->cpl->nomor }}: {{ $cpmkCpl->cpl->nama }}</li>
+                                                    @endif
+                                                @endforeach
+                                            </ul>
+                                        @else
+                                            -
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($cpmk->cpmkPi->count() > 0)
+                                            <ul class="list-unstyled mb-0">
+                                                @foreach($cpmk->cpmkPi as $cpmkPi)
+                                                    @if($cpmkPi)
+                                                        <li>PI-{{ $cpmkPi->pi->cpl->nomor }}-{{ $cpmkPi->pi->nomor }}</li>
                                                     @endif
                                                 @endforeach
                                             </ul>
@@ -166,7 +180,7 @@
                                         {{ $cpmk->evaluasi }}
                                     </td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-warning tindak-lanjut-btn"
+                                        <a href="#" class="btn btn-sm btn-primary tindak-lanjut-btn"
                                         data-cpmk-id="{{ $cpmk->id }}"
                                         data-cpmk-nomor="CPMK-{{ $cpmk->nomor }}"
                                         data-cpmk-deskripsi="{{ $cpmk->deskripsi }}"
