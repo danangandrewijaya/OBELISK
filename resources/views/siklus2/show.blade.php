@@ -182,7 +182,7 @@
                 const cplColors = [];
 
                 @foreach($cplData as $cplId => $data)
-                    cplLabels.push('PI {{ $data['cpl']->nomor }}');
+                    cplLabels.push('PI {{ $data['cpl']->cpl->nomor.'-'.$data['cpl']->nomor }}');
                     cplValues.push({{ $data['rata_rata'] }});
                     cplColors.push('{{ $data['rata_rata'] >= 75 ? '#50cd89' : ($data['rata_rata'] >= 65 ? '#ffc700' : '#f1416c') }}');
                 @endforeach
