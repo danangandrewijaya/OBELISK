@@ -33,6 +33,7 @@ Route::get('/nilai/{id}', [NilaiController::class, 'getNilai']);
 Route::post('/nilai/{id}/keterangan', [NilaiController::class, 'updateKeterangan']);
 // Tindak Lanjut CPMK
 Route::post('/cpmk/{id}/tindak-lanjut', [CpmkController::class, 'updateTindakLanjut']);
+Route::get('/cpmk/{id}/mahasiswa-bobot-kurang', [CpmkController::class, 'mahasiswaBobotKurang']);
 
 Route::prefix('v1')->group(function () {
 

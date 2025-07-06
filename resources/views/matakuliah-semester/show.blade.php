@@ -368,7 +368,7 @@
 
     <!-- Modal Tindak Lanjut CPMK -->
     <div class="modal fade" id="tindakLanjutModal" tabindex="-1" aria-labelledby="tindakLanjutModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <form id="tindak-lanjut-form">
                     <div class="modal-header">
@@ -396,6 +396,19 @@
                         <div class="mb-3">
                             <label for="modal-cpmk-evaluasi" class="form-label">Rencana Perbaikan</label>
                             <textarea class="form-control" id="modal-cpmk-evaluasi" name="evaluasi" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-link p-0" id="toggle-mhs-bobot" style="font-size: 0.95rem;">
+                                <i class="fas fa-users"></i> Lihat Mahasiswa Nilai Bobot &lt; 1.0
+                            </button>
+                            <div id="mhs-bobot-list" class="mt-2" style="display: none;">
+                                <div class="alert alert-info mb-2" style="font-size:0.95rem;">
+                                    Mahasiswa dengan nilai bobot CPMK ini &lt; 1.0:
+                                </div>
+                                <ul id="mhs-bobot-ul" class="mb-0" style="font-size:0.97rem;">
+                                    <!-- Diisi via JS -->
+                                </ul>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -634,6 +647,49 @@
                     alertBox.className = 'alert alert-danger';
                     alertBox.innerHTML = 'Gagal menyimpan tindak lanjut.';
                     alertBox.style.display = 'block';
+                });
+            });
+
+            // Toggle tampil/sembunyi list mahasiswa
+            document.getElementById('toggle-mhs-bobot').addEventListener('click', function() {
+                const listDiv = document.getElementById('mhs-bobot-list');
+                if (listDiv.style.display === 'none') {
+                    listDiv.style.display = 'block';
+                    this.textContent = 'Sembunyikan Daftar Mahasiswa';
+                } else {
+                    listDiv.style.display = 'none';
+                    this.innerHTML = '<i class="fas fa-users"></i> Lihat Mahasiswa Nilai Bobot < 1.0';
+                }
+            });
+
+            // Isi list mahasiswa saat modal dibuka
+            document.querySelectorAll('.tindak-lanjut-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    // ...existing code...
+                    // Ambil data CPMK id
+                    const cpmkId = this.dataset.cpmkId;
+                    // Reset list
+                    document.getElementById('mhs-bobot-ul').innerHTML = '<li>Memuat data...</li>';
+                    document.getElementById('mhs-bobot-list').style.display = 'none';
+                    document.getElementById('toggle-mhs-bobot').innerHTML = '<i class="fas fa-users"></i> Lihat Mahasiswa Nilai Bobot < 1.0';
+
+                    // Fetch mahasiswa dengan nilai bobot < 1.0 untuk CPMK ini
+                    fetch(`/api/cpmk/${cpmkId}/mahasiswa-bobot-kurang`)
+                        .then(res => res.json())
+                        .then(data => {
+                            const ul = document.getElementById('mhs-bobot-ul');
+                            ul.innerHTML = '';
+                            if (data.length === 0) {
+                                ul.innerHTML = '<li>Tidak ada mahasiswa dengan nilai bobot &lt; 1.0</li>';
+                            } else {
+                                data.forEach(mhs => {
+                                    ul.innerHTML += `<li>${mhs.nim} - ${mhs.nama} <span class="badge bg-danger ms-2">${mhs.bobot}</span></li>`;
+                                });
+                            }
+                        })
+                        .catch(() => {
+                            document.getElementById('mhs-bobot-ul').innerHTML = '<li>Gagal memuat data.</li>';
+                        });
                 });
             });
         });
