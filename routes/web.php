@@ -70,6 +70,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('siklus/{siklus}/configure', [\App\Http\Controllers\SiklusController::class, 'configure'])->name('siklus.configure');
     Route::post('siklus/{siklus}/save-cpl-selections', [\App\Http\Controllers\SiklusController::class, 'saveCplSelections'])->name('siklus.save-cpl-selections');
 
+    /*
+     * Siklus 2 Routes
+     */
+    Route::get('siklus2', [\App\Http\Controllers\Siklus2Controller::class, 'index'])->name('siklus2.index');
+    Route::get('siklus2/create', [\App\Http\Controllers\Siklus2Controller::class, 'create'])->name('siklus2.create');
+    Route::post('siklus2', [\App\Http\Controllers\Siklus2Controller::class, 'store'])->name('siklus2.store');
+    Route::get('siklus2/{siklus}', [\App\Http\Controllers\Siklus2Controller::class, 'show'])->name('siklus2.show');
+    Route::get('siklus2/{siklus}/edit', [\App\Http\Controllers\Siklus2Controller::class, 'edit'])->name('siklus2.edit');
+    Route::put('siklus2/{siklus}', [\App\Http\Controllers\Siklus2Controller::class, 'update'])->name('siklus2.update');
+    Route::delete('siklus2/{siklus}', [\App\Http\Controllers\Siklus2Controller::class, 'destroy'])->name('siklus2.destroy');
+
+    Route::get('siklus2/{siklus}/configure', [\App\Http\Controllers\Siklus2Controller::class, 'configure'])->name('siklus2.configure');
+    Route::post('siklus2/{siklus}/save-pi-selections', [\App\Http\Controllers\Siklus2Controller::class, 'savePiSelections'])->name('siklus2.save-pi-selections');
+
     // Master Mata Kuliah Semester - Changed from nested resource to simple resource with prefix and name
     Route::prefix('master')->name('master.')->group(function () {
         Route::resource('matakuliah-semester', \App\Http\Controllers\MataKuliahSemesterController::class);

@@ -16,4 +16,9 @@ class Pi extends Model
         'deskripsi',
         'cpl_id',
     ];
+
+    public function cpl()
+    {
+        return $this->belongsTo(Cpl::class);
+    }
 }

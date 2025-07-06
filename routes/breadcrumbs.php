@@ -83,3 +83,30 @@ Breadcrumbs::for('siklus.configure', function (BreadcrumbTrail $trail, $siklus) 
     $trail->parent('siklus.show', $siklus);
     $trail->push('Konfigurasi', route('siklus.configure', $siklus));
 });
+
+
+// Siklus2
+Breadcrumbs::for('siklus2.index', function (BreadcrumbTrail $trail) {
+    $trail->parent('dashboard');
+    $trail->push('Siklus', route('siklus2.index'));
+});
+
+Breadcrumbs::for('siklus2.create', function (BreadcrumbTrail $trail) {
+    $trail->parent('siklus2.index');
+    $trail->push('Tambah Siklus', route('siklus2.create'));
+});
+
+Breadcrumbs::for('siklus2.edit', function (BreadcrumbTrail $trail, $siklus) {
+    $trail->parent('siklus2.index');
+    $trail->push('Edit Siklus', route('siklus2.edit', $siklus));
+});
+
+Breadcrumbs::for('siklus2.show', function (BreadcrumbTrail $trail, $siklus) {
+    $trail->parent('siklus2.index');
+    $trail->push($siklus->nama, route('siklus2.show', $siklus));
+});
+
+Breadcrumbs::for('siklus2.configure', function (BreadcrumbTrail $trail, $siklus) {
+    $trail->parent('siklus2.show', $siklus);
+    $trail->push('Konfigurasi', route('siklus2.configure', $siklus));
+});
