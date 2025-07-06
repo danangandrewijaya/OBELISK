@@ -1,5 +1,5 @@
 <x-default-layout>
-    @section('title', 'Siklus')
+    @section('title', 'Siklus CPL')
 
     @section('breadcrumbs')
         {{ Breadcrumbs::render('siklus.index') }}
@@ -7,7 +7,7 @@
 
     <div class="card shadow-sm">
         <div class="card-header">
-            <div class="card-title">Daftar Siklus</div>
+            <div class="card-title">Daftar Siklus CPL</div>
             <div class="card-toolbar">
                 <a href="{{ route('siklus.create') }}" class="btn btn-sm btn-primary">
                     <i class="fas fa-plus"></i> Tambah Siklus
