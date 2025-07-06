@@ -99,6 +99,9 @@
                                 <th>CPL</th>
                                 <th>Rata-Rata Nilai</th>
                                 <th>Rata-Rata Bobot</th>
+                                <th>Analisis Pelaksanaan</th>
+                                <th>Rencana Perbaikan</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -152,9 +155,29 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge fs-6 {{ $rataBobot >= 0.7 ? 'badge-success' : ($rataBobot >= 0.5 ? 'badge-warning' : 'badge-danger') }}">
+                                        <span class="badge fs-6 {{ $rataNilai >= 70 ? 'badge-success' : ($rataNilai >= 50 ? 'badge-warning' : 'badge-danger') }}">
                                             {{ $rataBobot }}
                                         </span>
+                                    </td>
+                                    <td>
+                                        {{ $cpmk->pelaksanaan }}
+                                    </td>
+                                    <td>
+                                        {{ $cpmk->evaluasi }}
+                                    </td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-warning tindak-lanjut-btn"
+                                        data-cpmk-id="{{ $cpmk->id }}"
+                                        data-cpmk-nomor="CPMK-{{ $cpmk->nomor }}"
+                                        data-cpmk-deskripsi="{{ $cpmk->deskripsi }}"
+                                        data-cpmk-level="{{ $cpmk->level_taksonomi }}"
+                                        data-cpmk-cpl="@foreach($cpmk->cpmkCpl as $cpmkCpl){{ $cpmkCpl->cpl ? 'CPL-'.$cpmkCpl->cpl->nomor.': '.$cpmkCpl->cpl->nama.'; ' : '' }}@endforeach"
+                                        data-cpmk-pelaksanaan="{{ $cpmk->pelaksanaan }}"
+                                        data-cpmk-evaluasi="{{ $cpmk->evaluasi }}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#tindakLanjutModal">
+                                            Tindak Lanjut
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach
@@ -343,6 +366,47 @@
         </div>
     </div>
 
+    <!-- Modal Tindak Lanjut CPMK -->
+    <div class="modal fade" id="tindakLanjutModal" tabindex="-1" aria-labelledby="tindakLanjutModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="tindak-lanjut-form">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="tindakLanjutModalLabel">Tindak Lanjut CPMK</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Notifikasi -->
+                        <div id="tindak-lanjut-alert" style="display:none"></div>
+                        <input type="hidden" name="cpmk_id" id="modal-cpmk-id">
+                        <dl class="row mb-3">
+                            <dt class="col-sm-4">CPMK</dt>
+                            <dd class="col-sm-8" id="modal-cpmk-nomor"></dd>
+                            <dt class="col-sm-4">Deskripsi</dt>
+                            <dd class="col-sm-8" id="modal-cpmk-deskripsi"></dd>
+                            <dt class="col-sm-4">Level Taksonomi</dt>
+                            <dd class="col-sm-8" id="modal-cpmk-level"></dd>
+                            <dt class="col-sm-4">CPL</dt>
+                            <dd class="col-sm-8" id="modal-cpmk-cpl"></dd>
+                        </dl>
+                        <div class="mb-3">
+                            <label for="modal-cpmk-pelaksanaan" class="form-label">Analisis Pelaksanaan</label>
+                            <textarea class="form-control" id="modal-cpmk-pelaksanaan" name="pelaksanaan" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="modal-cpmk-evaluasi" class="form-label">Rencana Perbaikan</label>
+                            <textarea class="form-control" id="modal-cpmk-evaluasi" name="evaluasi" rows="2"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -371,7 +435,8 @@
                     // Setup keterangan form if needed
 
                     const isDosen = @json(session('active_role') === 'dosen');
-                    if (isRemidiCpmk && isDosen) {
+                    const isAdmin = @json(session('active_role') === 'admin');
+                    if (isRemidiCpmk && (isAdmin || isDosen)) {
                         document.getElementById('keterangan-nilai-id').value = nilaiId;
 
                         // Fetch current keterangan value
@@ -516,6 +581,59 @@
                     setTimeout(() => {
                         errorMsg.remove();
                     }, 3000);
+                });
+            });
+
+            // Modal Tindak Lanjut CPMK
+            document.querySelectorAll('.tindak-lanjut-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.getElementById('modal-cpmk-id').value = this.dataset.cpmkId;
+                    document.getElementById('modal-cpmk-nomor').textContent = this.dataset.cpmkNomor;
+                    document.getElementById('modal-cpmk-deskripsi').textContent = this.dataset.cpmkDeskripsi;
+                    document.getElementById('modal-cpmk-level').textContent = this.dataset.cpmkLevel;
+                    document.getElementById('modal-cpmk-cpl').textContent = this.dataset.cpmkCpl;
+                    document.getElementById('modal-cpmk-pelaksanaan').value = this.dataset.cpmkPelaksanaan;
+                    document.getElementById('modal-cpmk-evaluasi').value = this.dataset.cpmkEvaluasi;
+                });
+            });
+
+            // Submit form tindak lanjut
+            document.getElementById('tindak-lanjut-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const cpmkId = document.getElementById('modal-cpmk-id').value;
+                const pelaksanaan = document.getElementById('modal-cpmk-pelaksanaan').value;
+                const evaluasi = document.getElementById('modal-cpmk-evaluasi').value;
+                const alertBox = document.getElementById('tindak-lanjut-alert');
+                alertBox.style.display = 'none';
+                alertBox.innerHTML = '';
+
+                fetch(`/api/cpmk/${cpmkId}/tindak-lanjut`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ pelaksanaan, evaluasi })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        alertBox.className = 'alert alert-success';
+                        alertBox.innerHTML = 'Tindak lanjut berhasil disimpan.';
+                        alertBox.style.display = 'block';
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1200);
+                    } else {
+                        alertBox.className = 'alert alert-danger';
+                        alertBox.innerHTML = data.message || 'Gagal menyimpan tindak lanjut.';
+                        alertBox.style.display = 'block';
+                    }
+                })
+                .catch(err => {
+                    alertBox.className = 'alert alert-danger';
+                    alertBox.innerHTML = 'Gagal menyimpan tindak lanjut.';
+                    alertBox.style.display = 'block';
                 });
             });
         });

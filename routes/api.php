@@ -4,6 +4,7 @@ use App\Actions\SamplePermissionApi;
 use App\Actions\SampleRoleApi;
 use App\Actions\SampleUserApi;
 use App\Http\Controllers\Api\NilaiController;
+use App\Http\Controllers\CpmkController;
 use App\Http\Controllers\DashboardController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -30,6 +31,8 @@ Route::get('/dashboard/stats', [DashboardController::class, 'getStats']);
 Route::get('/nilai/{id}/cpmk', [NilaiController::class, 'getCpmkValues']);
 Route::get('/nilai/{id}', [NilaiController::class, 'getNilai']);
 Route::post('/nilai/{id}/keterangan', [NilaiController::class, 'updateKeterangan']);
+// Tindak Lanjut CPMK
+Route::post('/cpmk/{id}/tindak-lanjut', [CpmkController::class, 'updateTindakLanjut']);
 
 Route::prefix('v1')->group(function () {
 
