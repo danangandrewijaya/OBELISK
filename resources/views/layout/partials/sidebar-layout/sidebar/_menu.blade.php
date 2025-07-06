@@ -97,8 +97,16 @@
 			<div class="menu-item">
 				<!--begin:Menu link-->
 				<a class="menu-link {{ request()->routeIs('siklus.index') ? 'active' : '' }}" href="{{ route('siklus.index') }}">
-					<span class="menu-icon">{!! getIcon('chart', 'fs-2') !!}</span>
-					<span class="menu-title">Siklus</span>
+					<span class="menu-icon">{!! getIcon('chart-line', 'fs-2') !!}</span>
+					<span class="menu-title">Siklus CPL</span>
+				</a>
+				<!--end:Menu link-->
+			</div>
+			<div class="menu-item">
+				<!--begin:Menu link-->
+				<a class="menu-link {{ request()->routeIs('siklus2.index') ? 'active' : '' }}" href="{{ route('siklus2.index') }}">
+					<span class="menu-icon">{!! getIcon('chart-line-star', 'fs-2') !!}</span>
+					<span class="menu-title">Siklus PI</span>
 				</a>
 				<!--end:Menu link-->
 			</div>

@@ -74,7 +74,7 @@
                     <select name="pengampu_ids[]" id="pengampu_ids" class="form-select @error('pengampu_ids') is-invalid @enderror" required multiple data-control="select2" data-placeholder="-- Pilih Dosen Pengampu --">
                         @foreach ($dosens as $dosen)
                             <option value="{{ $dosen->id }}" {{ in_array($dosen->id, old('pengampu_ids', [])) ? 'selected' : '' }}>
-                                {{ $dosen->nama }}
+                                {{ $dosen->nama }} ({{ $dosen->nip }})
                             </option>
                         @endforeach
                     </select>
@@ -93,7 +93,7 @@
                         <option value="">-- Pilih Koordinator Pengampu --</option>
                         @foreach ($dosens as $dosen)
                             <option value="{{ $dosen->id }}" {{ old('koord_pengampu_id') == $dosen->id ? 'selected' : '' }}>
-                                {{ $dosen->nama }}
+                                {{ $dosen->nama }} ({{ $dosen->nip }})
                             </option>
                         @endforeach
                     </select>
@@ -108,7 +108,7 @@
                         <option value="">-- Pilih GPM --</option>
                         @foreach ($dosens as $dosen)
                             <option value="{{ $dosen->id }}" {{ old('gpm_id') == $dosen->id ? 'selected' : '' }}>
-                                {{ $dosen->nama }}
+                                {{ $dosen->nama }} ({{ $dosen->nip }})
                             </option>
                         @endforeach
                     </select>

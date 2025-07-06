@@ -26,7 +26,7 @@
                         <!--end::Content-->
                     </div>
                     <!--end::Content wrapper-->
-                    @include(config('settings.KT_THEME_LAYOUT_DIR').'/partials/sidebar-layout/_footer')
+                    {{-- @include(config('settings.KT_THEME_LAYOUT_DIR').'/partials/sidebar-layout/_footer') --}}
                 </div>
                 <!--end:::Main-->
             </div>
