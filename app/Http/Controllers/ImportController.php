@@ -33,9 +33,9 @@ class ImportController extends Controller
     {
         $user = auth()->user();
         $role = session('active_role');
-        if($role === 'dosen') {
-            return redirect('/')->with('warning', 'Fitur impor untuk dosen belum tersedia.');
-        }
+        // if($role === 'dosen') {
+        //     return redirect('/')->with('warning', 'Fitur impor untuk dosen belum tersedia.');
+        // }
         $dosens = Dosen::orderBy('nama')->get();
 
         return view('import.form', compact('dosens', 'role'));
@@ -46,6 +46,8 @@ class ImportController extends Controller
      */
     public function previewImport(Request $request)
     {
+        $role = session('active_role');
+
         if ($request->isMethod('get')) {
             // Saat metode GET, periksa apakah data preview tersedia di session
             if (!$request->session()->has('import_preview_data')) {
@@ -83,11 +85,14 @@ class ImportController extends Controller
         $pengampus = $request->pengampu_ids ?? [];
 
         try {
-            $validator = Validator::make($request->all(), [
+            $rules = [
                 'excel_file' => 'required|mimes:xlsx,xls|max:10240',
-                'pengampu_ids' => 'required|array|min:1',
-                'pengampu_ids.*' => 'exists:mst_dosen,id'
-            ], [
+            ];
+            if ($role !== 'dosen') {
+                $rules['pengampu_ids'] = 'required|array|min:1';
+                $rules['pengampu_ids.*'] = 'exists:mst_dosen,id';
+            }
+            $validator = Validator::make($request->all(), $rules, [
                 'excel_file.required' => 'File Excel wajib diunggah',
                 'excel_file.mimes' => 'File harus berformat Excel (.xlsx atau .xls)',
                 'excel_file.max' => 'Ukuran file maksimal 10MB',
@@ -360,6 +365,8 @@ class ImportController extends Controller
      */
     private function saveDataFromSession($pengampuIds = [], $sessionData = null)
     {
+        $role = session('active_role');
+
         // Use provided session data or get from session
         if ($sessionData === null) {
             $sessionData = session('import_preview_data');
@@ -385,21 +392,31 @@ class ImportController extends Controller
             throw new \Exception("Mata kuliah dengan kode $mataKuliahKode tidak ditemukan dalam kurikulum.");
         }
 
-        $mks = MataKuliahSemester::updateOrCreate(
-            [
-                'mkk_id' => $mkk->id,
-                'tahun' => $tahun,
-                'semester' => $semester
-            ],
-            [
-                'koord_pengampu_id' => $koordPengampu ? $koordPengampu->id : null,
-                'gpm_id' => $gpm ? $gpm->id : null,
-                // Other fields if needed
-            ]
-        );
+        if($role !== 'dosen'){
+            $mks = MataKuliahSemester::updateOrCreate(
+                [
+                    'mkk_id' => $mkk->id,
+                    'tahun' => $tahun,
+                    'semester' => $semester
+                ],
+                [
+                    'koord_pengampu_id' => $koordPengampu ? $koordPengampu->id : null,
+                    'gpm_id' => $gpm ? $gpm->id : null,
+                    // Other fields if needed
+                ]
+            );
+        }else{
+            $mks = MataKuliahSemester::firstWhere (
+                [
+                    'mkk_id' => $mkk->id,
+                    'tahun' => $tahun,
+                    'semester' => $semester
+                ]
+            );
+        }
 
         // 3. Save pengampu associations
-        if (!empty($pengampuIds)) {
+        if ($role !== 'dosen' && !empty($pengampuIds)) {
             // Use updateOrCreate for each pengampu
             foreach ($pengampuIds as $dosenId) {
                 Pengampu::updateOrCreate(

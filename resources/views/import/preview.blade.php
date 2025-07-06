@@ -53,6 +53,7 @@
                     </div>
                     @endif
 
+                    @if (session('active_role') !== 'dosen')
                     <div class="card mb-4">
                         <div class="card-header">
                             <h4 class="card-title">Pengampu Terpilih</h4>
@@ -82,6 +83,7 @@
                             </div>
                         </div>
                     </div>
+                    @endif
 
                     @foreach($preview as $sheetName => $sheetData)
 

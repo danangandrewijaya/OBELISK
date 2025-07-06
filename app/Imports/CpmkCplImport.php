@@ -106,6 +106,27 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
             'cpmk_cpl' => $cpmkCplData, // Save CPMK-CPL data in session
         ];
 
+        if(session('active_role') === 'dosen'){
+            $dosenId = session('dosen_id');
+
+            // Cari MKS berdasarkan kode, tahun, semester
+            $mkk = MataKuliahKurikulum::whereRaw('LOWER(kode) = ?', [strtolower($mataKuliahKode)])->first();
+            if ($mkk) {
+                $mks = MataKuliahSemester::where('mkk_id', $mkk->id)
+                    ->where('tahun', substr($rows[1][$cell2], 0, 4))
+                    ->where('semester', strtolower($rows[2][$cell2]) === 'genap' ? 2 : 1)
+                    ->first();
+                if ($mks) {
+                    $isPengampu = Pengampu::where('mks_id', $mks->id)
+                        ->where('dosen_id', $dosenId)
+                        ->exists();
+                    if (!$isPengampu) {
+                        throw new \Exception("Anda bukan pengampu pada mata kuliah $mkk->nama ($mataKuliahKode {$previewData['tahun']}-{$previewData['semester']}).");
+                    }
+                }
+            }
+        }
+
         // Simpan data ke session dengan menggunakan facade dan helper
         // Menggunakan multiple pendekatan untuk memastikan data tersimpan
         app('session')->put('import_preview_data', $previewData);
