@@ -31,7 +31,7 @@
 
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Nilai CPL</div>
+                    <div class="card-title">Nilai CPL (Terbaik)</div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -53,6 +53,7 @@
                             </thead>
                             <tbody>
                                 @foreach($mahasiswa->nilai as $nilai)
+                                @if($nilai->is_terbaik)
                                 <tr>
                                     <td>{{ $nilai->mks->mkk->kode }} - {{ $nilai->mks->mkk->nama }}</td>
                                     @php
@@ -99,7 +100,7 @@
                                         $cplId6 = $cpls->where('nomor', 6)->first()->id;
                                     @endphp
                                     @if($nilai->nilaiCpl->where('cpl_id', $cplId6)->first())
-                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', 6)->first()->nilai_angka }}</td>
+                                        <td>{{ $nilai->nilaiCpl->where('cpl_id', $cplId6)->first()->nilai_angka }}</td>
                                     @else
                                         <td></td>
                                     @endif
@@ -136,6 +137,7 @@
                                         <td></td>
                                     @endif
                                 </tr>
+                                @endif
                                 @endforeach
                             </tbody>
                         </table>
@@ -147,7 +149,7 @@
 
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Transkrip Makul</div>
+                    <div class="card-title">Transkrip Makul (Lengkap)</div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -187,7 +189,7 @@
 
             <div class="card">
                 <div class="card-header">
-                    <div class="card-title">Capaian CPL</div>
+                    <div class="card-title">Capaian CPL (Terbaik)</div>
                 </div>
                 <div class="card-body">
                     <div id="cpl_chart"></div>
@@ -274,11 +276,11 @@
                 return new bootstrap.Tooltip(tooltipTriggerEl)
             })
 
-            // Calculate overall CPL values
+            // Calculate overall CPL values ONLY from nilai is_terbaik
             var cplValues = {};
             var cplCounts = {};
 
-            @foreach($mahasiswa->nilai as $nilai)
+            @foreach($mahasiswa->nilai->where('is_terbaik', true) as $nilai)
                 @foreach($nilai->nilaiCpmk as $nilaiCpmk)
                     @foreach($nilaiCpmk->cpmk->cpmkCpl as $cpmkCpl)
                         if (!cplValues[{{ $cpmkCpl->cpl_id }}]) {
