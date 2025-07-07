@@ -84,7 +84,7 @@
                 <div class="separator separator-dashed mt-8 mb-8"></div>
 
                 <div class="d-flex justify-content-end">
-                    <a href="{{ route('siklus.index') }}" class="btn btn-light me-3">Batal</a>
+                    <a href="{{ route('siklus2.index') }}" class="btn btn-light me-3">Batal</a>
                     <button type="submit" class="btn btn-primary">
                         <span class="indicator-label">Simpan</span>
                     </button>

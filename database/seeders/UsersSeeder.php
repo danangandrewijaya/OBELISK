@@ -34,8 +34,7 @@ class UsersSeeder extends Seeder
 
     public function run()
     {
-        $dosens = Dosen::all();
-        // dd($dosens);
+        $dosens = Dosen::whereNotNull('tgl')->get();
 
         foreach($dosens as $dosen){
             $user = User::create([
