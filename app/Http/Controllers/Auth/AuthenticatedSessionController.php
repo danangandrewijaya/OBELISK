@@ -49,10 +49,11 @@ class AuthenticatedSessionController extends Controller
             $role = $roles->first();
             session(['active_role' => $role]);
             if($role === 'dosen') {
-                $nip = strstr(auth()->user()->email, '@', true);
+                $nip = auth()->user()->nip;
                 $user = Dosen::where('nip', $nip)->first();
                 $dosen = Dosen::where('id', $user->id)->first();
                 session(['dosen_id' => $dosen->id]);
+                session(['nip' => $nip]);
             }
                 return redirect()->intended(RouteServiceProvider::HOME);
         } elseif ($roles->count() > 1) {

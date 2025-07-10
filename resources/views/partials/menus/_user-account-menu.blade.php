@@ -22,7 +22,7 @@
                 @php
                     $email = '-';
                     if(session('active_role') === 'dosen'){
-                        $email = strstr(auth()->user()->email, '@', true);
+                        $email = session('nip');
                     }else{
                         $email = Auth::user()->email;
                     }
