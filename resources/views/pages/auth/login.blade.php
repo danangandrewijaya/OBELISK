@@ -14,7 +14,7 @@
             <!--begin::Subtitle-->
             <div class="text-gray-500 fw-semibold fs-6">
                 User Dosen<br>
-                >Email: NIP + @undip.ac.id<br>
+                >Email: Email SSO<br>
                 >Password: Tgl Lahir (DDMMYYYY)
             </div>
             <!--end::Subtitle--->
