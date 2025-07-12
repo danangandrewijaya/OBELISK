@@ -273,15 +273,15 @@ class MataKuliahSemesterController extends Controller
         try {
             DB::beginTransaction();
 
-            if ($matakuliahSemester->nilaiMahasiswa()->count() > 0) {
-                return back()->with('error', 'Tidak dapat menghapus data karena masih memiliki data nilai mahasiswa terkait.');
-            }
+            // if ($matakuliahSemester->nilaiMahasiswa()->count() > 0) {
+            //     return back()->with('error', 'Tidak dapat menghapus data karena masih memiliki data nilai mahasiswa terkait.');
+            // }
 
-            if ($matakuliahSemester->cpmk()->count() > 0) {
-                return back()->with('error', 'Tidak dapat menghapus data karena masih memiliki data CPMK terkait.');
-            }
+            // if ($matakuliahSemester->cpmk()->count() > 0) {
+            //     return back()->with('error', 'Tidak dapat menghapus data karena masih memiliki data CPMK terkait.');
+            // }
 
-            $matakuliahSemester->pengampus()->delete();
+            // $matakuliahSemester->pengampus()->delete();
 
             $matakuliahSemester->delete();
 
