@@ -137,7 +137,7 @@
                                                         <tr>
                                                             <td>{{ $cpmkCpl['kode'] }}</td>
                                                             <td>{{ $cpmkCpl['deskripsi'] }}</td>
-                                                            <td>{{ $cpmkCpl['cpl_number'] ? 'CPL'.$cpmkCpl['cpl_number'] : '-' }}</td>
+                                                            <td>{{ $cpmkCpl['cpl_number'] ? 'CPL'.$cpmkCpl['cpl_number'].' ('.($cpmkCpl['cpl_bobot']*100).'%)' : '-' }}</td>
                                                         </tr>
                                                     @endforeach
                                                 @else
