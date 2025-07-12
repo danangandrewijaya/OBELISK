@@ -18,7 +18,16 @@
         </div>
         <div class="card-body">
             <form id="filter-form" class="row mb-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label for="kurikulum" class="form-label">Kurikulum</label>
+                    <select id="kurikulum" name="kurikulum" class="form-select form-select-sm">
+                        <option value="">Semua Kurikulum</option>
+                        @foreach ($kurikulums as $kurikulum)
+                            <option value="{{ $kurikulum->id }}" {{ request('kurikulum') == $kurikulum->id ? 'selected' : '' }}>{{ $kurikulum->nama }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label for="tahun" class="form-label">Tahun</label>
                     <select id="tahun" name="tahun" class="form-select form-select-sm">
                         <option value="">Semua Tahun</option>
@@ -27,7 +36,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="semester" class="form-label">Semester</label>
                     <select id="semester" name="semester" class="form-select form-select-sm">
                         <option value="">Semua Semester</option>
@@ -36,14 +45,14 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">&nbsp;</label>
                     <button type="submit" class="btn btn-sm btn-primary d-block">
                         <i class="bi bi-filter"></i> Filter
                     </button>
                 </div>
             </form>
-
+            <br>
             {{ $dataTable->table(['class' => 'table table-row-bordered table-striped gy-5']) }}
         </div>
     </div>
@@ -56,6 +65,9 @@
             $(document).ready(function() {
                 // Initialize select values from URL
                 let currentUrl = new URL(window.location.href);
+                if (currentUrl.searchParams.has('kurikulum')) {
+                    document.getElementById('kurikulum').value = currentUrl.searchParams.get('kurikulum');
+                }
                 if (currentUrl.searchParams.has('tahun')) {
                     document.getElementById('tahun').value = currentUrl.searchParams.get('tahun');
                 }
@@ -73,6 +85,7 @@
                     e.preventDefault();
 
                     // Get form values
+                    let kurikulum = document.getElementById('kurikulum').value;
                     let tahun = document.getElementById('tahun').value;
                     let semester = document.getElementById('semester').value;
 
@@ -82,6 +95,9 @@
                         let url = new URL(window.location.href);
 
                         // Update URL parameters
+                        if (kurikulum) url.searchParams.set('kurikulum', kurikulum);
+                        else url.searchParams.delete('kurikulum');
+
                         if (tahun) url.searchParams.set('tahun', tahun);
                         else url.searchParams.delete('tahun');
 
@@ -97,9 +113,11 @@
             // Override Ajax data to include filters
             $(document).on('preXhr.dt', function(e, settings, data) {
                 // Add filters to ajax request
+                let kurikulum = document.getElementById('kurikulum').value;
                 let tahun = document.getElementById('tahun').value;
                 let semester = document.getElementById('semester').value;
 
+                if (kurikulum) data.kurikulum = kurikulum;
                 if (tahun) data.tahun = tahun;
                 if (semester) data.semester = semester;
             });

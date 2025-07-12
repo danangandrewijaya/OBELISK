@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DataTables\MatakuliahSemesterDataTable;
 use App\Models\Dosen;
+use App\Models\Kurikulum;
 use App\Models\MataKuliahKurikulum;
 use App\Models\MataKuliahSemester;
 use App\Models\Pengampu;
@@ -20,10 +21,11 @@ class MataKuliahSemesterController extends Controller
      */
     public function index(Request $request, MatakuliahSemesterDataTable $dataTable)
     {
+        $kurikulums = Kurikulum::get()->values();
         $years = MataKuliahSemester::distinct()->pluck('tahun')->sort()->values();
         $semesters = MataKuliahSemester::distinct()->pluck('semester')->sort()->values();
 
-        return $dataTable->render('matakuliah-semester.index', compact('years', 'semesters'));
+        return $dataTable->render('matakuliah-semester.index', compact('kurikulums', 'years', 'semesters'));
     }
 
     /**

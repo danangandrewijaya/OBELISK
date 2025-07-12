@@ -23,6 +23,9 @@ class MatakuliahSemesterDataTable extends DataTable
             ->addColumn('nama_matakuliah', function ($row) {
                 return $row->mkk->kode . ' - ' . $row->mkk->nama;
             })
+            ->addColumn('kurikulum', function ($row) {
+                return $row->mkk->kurikulum->nama;
+            })
             ->addColumn('pengampu', function ($row) {
                 $pengampuList = $row->pengampuDosens->pluck('nama')->toArray();
                 return !empty($pengampuList) ? implode('<br>', $pengampuList) : '-';
@@ -60,6 +63,14 @@ class MatakuliahSemesterDataTable extends DataTable
     {
         $query = $model->newQuery()
             ->with(['mkk', 'pengampuDosens']);
+
+        // Apply kurikulum filter if present
+        $kurikulum = $this->request()->get('kurikulum');
+        if ($this->request()->has('kurikulum')) {
+            $query->whereHas('mkk', function ($q) use ($kurikulum) {
+                $q->where('kurikulum_id', $kurikulum);
+            });
+        }
 
         // Apply year filter if present
         if ($this->request()->has('tahun')) {
@@ -111,6 +122,10 @@ class MatakuliahSemesterDataTable extends DataTable
             Column::computed('nama_matakuliah')
                 ->title('Mata Kuliah')
                 ->searchable(true)
+                ->orderable(true),
+            Column::make('kurikulum')
+                ->title('Kurikulum')
+                ->searchable(false)
                 ->orderable(true),
             Column::make('tahun')
                 ->title('Tahun')
