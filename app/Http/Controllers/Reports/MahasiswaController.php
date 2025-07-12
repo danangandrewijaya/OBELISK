@@ -7,6 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Mahasiswa;
 use App\Models\Cpl;
 
+use App\Models\Kurikulum;
+use Illuminate\Http\Request;
+
 class MahasiswaController extends Controller
 {
     public function index(MahasiswaDataTable $dataTable)
@@ -25,6 +28,21 @@ class MahasiswaController extends Controller
             ->orderBy('nomor')
             ->get();
 
-        return view('report.mahasiswa.show', compact('mahasiswa', 'cpls'));
+        $kurikulums = Kurikulum::all();
+
+        return view('report.mahasiswa.show', compact('mahasiswa', 'cpls', 'kurikulums'));
+    }
+
+    public function updateKurikulum(Request $request, Mahasiswa $mahasiswa)
+    {
+        $request->validate([
+            'kurikulum_id' => 'required|exists:'.(new Kurikulum())->getTable().',id',
+        ]);
+
+        $mahasiswa->update([
+            'kurikulum_id' => $request->kurikulum_id,
+        ]);
+
+        return redirect()->back()->with('success', 'Kurikulum mahasiswa berhasil diperbarui.');
     }
 }

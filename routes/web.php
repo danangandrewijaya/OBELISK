@@ -49,6 +49,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('matakuliah-semester', MatakuliahSemesterController::class)->only(['index', 'show']);
     });
 
+    Route::put('/report/mahasiswa/{mahasiswa}/update-kurikulum', [App\Http\Controllers\Reports\MahasiswaController::class, 'updateKurikulum'])->name('report.mahasiswa.update_kurikulum');
+
     // Import Logs Routes - only index and show (no delete functionality)
     Route::resource('import-logs', App\Http\Controllers\ImportLogController::class)->only(['index', 'show']);
 

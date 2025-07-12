@@ -13,17 +13,26 @@
         </div>
         <div class="card-body">
             <div class="row mb-5">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="fw-bold">NIM</div>
                     <div>{{ $mahasiswa->nim }}</div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="fw-bold">Nama</div>
                     <div>{{ $mahasiswa->nama }}</div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="fw-bold">Program Studi</div>
                     <div>{{ $mahasiswa->prodi->nama }}</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="fw-bold">Kurikulum</div>
+                    <div>{{ $mahasiswa->kurikulum->nama }}</div>
+                    @if(session('active_role') === 'admin')
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editKurikulumModal">
+                        Edit Kurikulum
+                    </button>
+                    @endif
                 </div>
             </div>
 
@@ -264,6 +273,36 @@
                         </table>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="editKurikulumModal" tabindex="-1" aria-labelledby="editKurikulumModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editKurikulumModalLabel">Edit Kurikulum Mahasiswa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('report.mahasiswa.update_kurikulum', $mahasiswa) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="kurikulum_id" class="form-label">Kurikulum</label>
+                            <select class="form-select" id="kurikulum_id" name="kurikulum_id">
+                                @foreach($kurikulums as $kurikulum)
+                                    <option value="{{ $kurikulum->id }}" {{ $mahasiswa->kurikulum_id == $kurikulum->id ? 'selected' : '' }}>{{ $kurikulum->nama }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

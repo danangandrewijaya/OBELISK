@@ -38,4 +38,9 @@ class Mahasiswa extends Model
     {
         return $this->hasMany(Nilai::class);
     }
+
+    public function kurikulum()
+    {
+        return $this->belongsTo(Kurikulum::class);
+    }
 }
