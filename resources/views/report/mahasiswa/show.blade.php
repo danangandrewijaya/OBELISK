@@ -172,6 +172,7 @@
                                     <th>Nilai Angka</th>
                                     <th>Nilai Huruf</th>
                                     <th>Outcome</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -185,6 +186,11 @@
                                     <td>{{ $nilai->nilai_akhir_huruf }}</td>
                                     <td data-bs-toggle="tooltip" data-bs-placement="top" title="@foreach($nilai->nilaiCpmk as $nilaiCpmk) CPMK{{ $nilaiCpmk->cpmk->nomor }} ({{ $nilaiCpmk->nilai_angka }})@if(!$loop->last), @endif @endforeach">
                                         {{ $nilai->outcome }} <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteNilaiModal" data-nilai-id="{{ $nilai->id }}">
+                                            Hapus
+                                        </button>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -303,6 +309,29 @@
                         <button type="submit" class="btn btn-primary">Save changes</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Nilai Modal -->
+    <div class="modal fade" id="deleteNilaiModal" tabindex="-1" aria-labelledby="deleteNilaiModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteNilaiModalLabel">Konfirmasi Hapus Nilai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Apakah Anda yakin ingin menghapus nilai ini?
+                </div>
+                <div class="modal-footer">
+                    <form id="deleteNilaiForm" method="POST">
+                        @csrf
+                        @method('DELETE')
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger">Hapus</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -534,6 +563,17 @@
 
             var semesterChart = new ApexCharts(document.querySelector("#cpl_semester_chart"), semesterOptions);
             semesterChart.render();
+
+            // Handle delete modal
+            var deleteNilaiModal = document.getElementById('deleteNilaiModal');
+            deleteNilaiModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var nilaiId = button.getAttribute('data-nilai-id');
+                var form = document.getElementById('deleteNilaiForm');
+                var action = '{{ route("report.nilai.destroy", [":nilai"]) }}';
+                action = action.replace(':nilai', nilaiId);
+                form.setAttribute('action', action);
+            });
         </script>
     @endpush
 </x-default-layout>

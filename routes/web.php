@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::put('/report/mahasiswa/{mahasiswa}/update-kurikulum', [App\Http\Controllers\Reports\MahasiswaController::class, 'updateKurikulum'])->name('report.mahasiswa.update_kurikulum');
+    Route::delete('/report/nilai/{nilai}', [App\Http\Controllers\Reports\NilaiController::class, 'destroy'])->name('report.nilai.destroy');
 
     // Import Logs Routes - only index and show (no delete functionality)
     Route::resource('import-logs', App\Http\Controllers\ImportLogController::class)->only(['index', 'show']);
