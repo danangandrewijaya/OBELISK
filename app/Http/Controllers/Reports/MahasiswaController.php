@@ -27,10 +27,21 @@ class MahasiswaController extends Controller
         $cpls = Cpl::where('kurikulum_id', $mahasiswa->kurikulum_id)
             ->orderBy('nomor')
             ->get();
-
+        
         $kurikulums = Kurikulum::all();
 
-        return view('report.mahasiswa.show', compact('mahasiswa', 'cpls', 'kurikulums'));
+        // Nilai untuk transkrip lengkap (tanpa filter kurikulum)
+        $nilaiTranskrip = $mahasiswa->nilai()->with('mks.mkk')->get();
+
+        // Nilai yang sudah difilter berdasarkan kurikulum mahasiswa
+        $nilaiFiltered = $mahasiswa->nilai()
+            ->whereHas('mks.mkk', function ($query) use ($mahasiswa) {
+                $query->where('kurikulum_id', $mahasiswa->kurikulum_id);
+            })
+            ->with(['mks.mkk', 'nilaiCpmk.cpmk.cpmkCpl'])
+            ->get();
+
+        return view('report.mahasiswa.show', compact('mahasiswa', 'cpls', 'kurikulums', 'nilaiTranskrip', 'nilaiFiltered'));
     }
 
     public function updateKurikulum(Request $request, Mahasiswa $mahasiswa)

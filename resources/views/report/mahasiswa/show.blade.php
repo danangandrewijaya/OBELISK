@@ -61,7 +61,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($mahasiswa->nilai as $nilai)
+                                @foreach($nilaiFiltered as $nilai)
                                 @if($nilai->is_terbaik)
                                 <tr>
                                     <td>{{ $nilai->mks->mkk->kode }} - {{ $nilai->mks->mkk->nama }}</td>
@@ -178,7 +178,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($mahasiswa->nilai as $nilai)
+                                @foreach($nilaiTranskrip as $nilai)
                                 <tr>
                                     <td>{{ $nilai->mks->mkk->kode }} - {{ $nilai->mks->mkk->nama }} {{ $nilai->is_terbaik ? '*' : '' }}</td>
                                     <td>{{ $nilai->mks->tahun }}-{{ $nilai->mks->semester }}</td>
@@ -234,7 +234,7 @@
                             <thead>
                                 <tr class="fw-bold fs-6 text-gray-800">
                                     <th style="min-width: 300px;">CPL</th>
-                                    @foreach($mahasiswa->nilai->pluck('semester')->unique()->sort() as $semester)
+                                    @foreach($nilaiFiltered->pluck('semester')->unique()->sort() as $semester)
                                         <th class="text-center">Semester {{ $semester }}</th>
                                     @endforeach
                                 </tr>
@@ -248,9 +248,9 @@
                                                 <span class="text-muted">{{ $cpl->nama }}</span>
                                             </div>
                                         </td>
-                                        @foreach($mahasiswa->nilai->pluck('semester')->unique()->sort() as $semester)
+                                        @foreach($nilaiFiltered->pluck('semester')->unique()->sort() as $semester)
                                             @php
-                                                $semesterNilai = $mahasiswa->nilai->where('semester', $semester);
+                                                $semesterNilai = $nilaiFiltered->where('semester', $semester);
                                                 $cplTotal = 0;
                                                 $cplCount = 0;
 
@@ -355,7 +355,7 @@
             var cplValues = {};
             var cplCounts = {};
 
-            @foreach($mahasiswa->nilai->where('is_terbaik', true) as $nilai)
+            @foreach($nilaiFiltered->where('is_terbaik', true) as $nilai)
                 @foreach($nilai->nilaiCpmk as $nilaiCpmk)
                     @foreach($nilaiCpmk->cpmk->cpmkCpl as $cpmkCpl)
                         if (!cplValues[{{ $cpmkCpl->cpl_id }}]) {
@@ -464,7 +464,7 @@
             var semesterData = {};
             var allSemesters = [];
 
-            @foreach($mahasiswa->nilai as $nilai)
+            @foreach($nilaiFiltered as $nilai)
                 if (!semesterData[{{ $nilai->semester }}]) {
                     semesterData[{{ $nilai->semester }}] = {};
                     allSemesters.push({{ $nilai->semester }});
