@@ -96,7 +96,7 @@ class MatakuliahSemesterDataTable extends DataTable
             ->setTableId('matakuliah-semester-table')
             ->columns($this->getColumns())
             ->minifiedAjax()
-            ->dom('Bfrtip')
+            ->dom('Bfrtilp')
             ->orderBy(1)
             ->selectStyleSingle()
             // ->buttons([

@@ -59,7 +59,7 @@ class ImportLogDataTable extends DataTable
             ->columns($this->getColumns())
             ->minifiedAjax()
             ->dom('Bfrtip')
-            ->orderBy(5, 'desc') // Sort by created_at by default
+            ->orderBy(4, 'desc') // Sort by created_at by default
             ->selectStyleSingle();
     }
 
