@@ -117,7 +117,9 @@
                                             <ul class="list-unstyled mb-0">
                                                 @foreach($cpmk->cpmkCpl as $cpmkCpl)
                                                     @if($cpmkCpl->cpl)
-                                                        <li>CPL-{{ $cpmkCpl->cpl->nomor }}: {{ $cpmkCpl->cpl->nama }}</li>
+                                                        <li>CPL-{{ $cpmkCpl->cpl->nomor }}: {{ $cpmkCpl->cpl->nama }}
+                                                            <span class="badge fs-6 badge-light-{{ $cpmkCpl->bobot == 0 ? 'danger':'primary' }}">{{ $cpmkCpl->bobot*100 }}%</span>
+                                                        </li>
                                                     @endif
                                                 @endforeach
                                             </ul>
