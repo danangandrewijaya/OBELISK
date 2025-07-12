@@ -124,7 +124,7 @@
                                                 <tr>
                                                     <th>Kode CPMK</th>
                                                     <th>Deskripsi CPMK</th>
-                                                    <th>Kode CPL</th>
+                                                    <th>Kode CPL (Bobot%)</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
