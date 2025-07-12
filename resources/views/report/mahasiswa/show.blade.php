@@ -166,6 +166,8 @@
                             <thead>
                                 <tr class="fw-bold fs-6 text-gray-800">
                                     <th>Mata Kuliah</th>
+                                    <th>TA-Smt</th>
+                                    <th>Kurikulum</th>
                                     <th>SKS</th>
                                     <th>Semester</th>
                                     <th>Kelas</th>
@@ -178,7 +180,9 @@
                             <tbody>
                                 @foreach($mahasiswa->nilai as $nilai)
                                 <tr>
-                                    <td>{{ $nilai->mks->mkk->kode }} - {{ $nilai->mks->mkk->nama }}</td>
+                                    <td>{{ $nilai->mks->mkk->kode }} - {{ $nilai->mks->mkk->nama }} {{ $nilai->is_terbaik ? '*' : '' }}</td>
+                                    <td>{{ $nilai->mks->tahun }}-{{ $nilai->mks->semester }}</td>
+                                    <td>{{ $nilai->mks->mkk->kurikulum->nama }}</td>
                                     <td>{{ $nilai->mks->mkk->sks }}</td>
                                     <td>{{ $nilai->semester }}</td>
                                     <td>{{ $nilai->kelas }}</td>
@@ -188,14 +192,17 @@
                                         {{ $nilai->outcome }} <i class="bi bi-info-circle-fill text-primary fs-5"></i>
                                     </td>
                                     <td>
+                                        @if(session('active_role') === 'admin')
                                         <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteNilaiModal" data-nilai-id="{{ $nilai->id }}">
                                             Hapus
                                         </button>
+                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
                             </tbody>
                         </table>
+                        * Nilai Terbaik
                     </div>
                 </div>
             </div>
