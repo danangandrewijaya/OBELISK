@@ -108,7 +108,7 @@ class MatakuliahSemesterDataTable extends DataTable
             ->columns($this->getColumns())
             ->minifiedAjax()
             ->dom('Bfrtilp')
-            ->orderBy(1)
+            ->orderBy(2)
             ->selectStyleSingle()
             // ->buttons([
             //     Button::make('reload')
@@ -122,11 +122,11 @@ class MatakuliahSemesterDataTable extends DataTable
             Column::computed('nama_matakuliah')
                 ->title('Mata Kuliah')
                 ->searchable(true)
-                ->orderable(true),
+                ->orderable(false),
             Column::make('kurikulum')
                 ->title('Kurikulum')
                 ->searchable(false)
-                ->orderable(true),
+                ->orderable(false),
             Column::make('tahun')
                 ->title('Tahun')
                 ->searchable(false)
