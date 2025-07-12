@@ -79,6 +79,14 @@ class MatakuliahSemesterDataTable extends DataTable
             });
         }
 
+        $search = $this->request()->input('search.value');   // NULL jika tidak ada
+
+        if ($search) {
+            $query->whereHas('mkk', function ($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%')->orWhere('kode', 'like', '%' . $search . '%');
+            });
+        }
+
         return $query;
     }
 
@@ -106,11 +114,11 @@ class MatakuliahSemesterDataTable extends DataTable
                 ->orderable(true),
             Column::make('tahun')
                 ->title('Tahun')
-                ->searchable(true)
+                ->searchable(false)
                 ->orderable(true),
             Column::make('semester')
                 ->title('Semester')
-                ->searchable(true)
+                ->searchable(false)
                 ->orderable(true),
             Column::computed('pengampu')
                 ->title('Pengampu')
