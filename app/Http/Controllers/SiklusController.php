@@ -219,9 +219,16 @@ class SiklusController extends Controller
                 }
             }
 
+            $rataRata100 = $totalMks > 0 ? round($totalNilai / $totalMks, 2) : 0;
+            $rataRata4 = $rataRata100 / 25; // Konversi ke skala 4
+
+            $rataRata100 = $totalMks > 0 ? round($totalNilai / $totalMks, 2) : 0;
+            $rataRata4 = ($rataRata100 / 100) * 4; // Konversi ke skala 4
+
             $cplData[$cpl->id] = [
                 'cpl' => $cpl,
-                'rata_rata' => $totalMks > 0 ? round($totalNilai / $totalMks, 2) : 0,
+                'rata_rata' => $rataRata100,
+                'rata_rata_4' => $rataRata4,
                 'total_mk' => $totalMks,
                 'detail' => $detailNilai,
             ];

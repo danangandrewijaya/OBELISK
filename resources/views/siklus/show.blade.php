@@ -70,6 +70,11 @@
                                                         {{ $data['rata_rata'] >= 75 ? 'Baik' : ($data['rata_rata'] >= 65 ? 'Cukup' : 'Kurang') }}
                                                     </span>
                                                 </div>
+                                                <div class="ms-2">
+                                                    <span class="badge badge-light-{{ $data['rata_rata_4'] >= 3.0 ? 'success' : ($data['rata_rata_4'] >= 2.5 ? 'warning' : 'danger') }}">
+                                                        Skala 4: {{ number_format($data['rata_rata_4'], 2) }}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     @endforeach
@@ -84,9 +89,18 @@
                                 <h3 class="card-title align-items-start flex-column">
                                     <span class="card-label fw-bold text-dark">Grafik Ketercapaian CPL</span>
                                 </h3>
+                                <div class="card-toolbar">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="scale-toggle">
+                                        <label class="form-check-label" for="scale-toggle">
+                                            Skala 4
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             <div class="card-body pt-0">
-                                <div id="cpl-chart" style="height: 350px;"></div>
+                                <div id="cpl-chart-100" style="height: 350px;"></div>
+                                <div id="cpl-chart-4" style="height: 350px; display: none;"></div>
                             </div>
                         </div>
                     </div>
@@ -178,27 +192,32 @@
             @if(count($cplData) > 0)
                 // Prepare data for ApexCharts
                 const cplLabels = [];
-                const cplValues = [];
-                const cplColors = [];
+                const cplValues100 = [];
+                const cplColors100 = [];
+                const cplValues4 = [];
+                const cplColors4 = [];
 
                 @foreach($cplData as $cplId => $data)
                     cplLabels.push('CPL {{ $data['cpl']->nomor }}');
-                    cplValues.push({{ $data['rata_rata'] }});
-                    cplColors.push('{{ $data['rata_rata'] >= 75 ? '#50cd89' : ($data['rata_rata'] >= 65 ? '#ffc700' : '#f1416c') }}');
+                    
+                    // Data for scale 100
+                    cplValues100.push({{ $data['rata_rata'] }});
+                    cplColors100.push('{{ $data['rata_rata'] >= 75 ? '#50cd89' : ($data['rata_rata'] >= 65 ? '#ffc700' : '#f1416c') }}');
+
+                    // Data for scale 4
+                    cplValues4.push({{ $data['rata_rata_4'] }});
+                    cplColors4.push('{{ $data['rata_rata_4'] >= 3.0 ? '#50cd89' : ($data['rata_rata_4'] >= 2.5 ? '#ffc700' : '#f1416c') }}');
                 @endforeach
 
-                // Initialize chart
-                const chart = new ApexCharts(document.querySelector('#cpl-chart'), {
+                const chartOptions = {
                     series: [{
                         name: 'Nilai Rata-rata',
-                        data: cplValues
+                        data: cplValues100
                     }],
                     chart: {
                         type: 'bar',
                         height: 350,
-                        toolbar: {
-                            show: false
-                        }
+                        toolbar: { show: false }
                     },
                     plotOptions: {
                         bar: {
@@ -208,12 +227,8 @@
                             columnWidth: '40%',
                         }
                     },
-                    legend: {
-                        show: false
-                    },
-                    dataLabels: {
-                        enabled: false
-                    },
+                    legend: { show: false },
+                    dataLabels: { enabled: false },
                     stroke: {
                         show: true,
                         width: 2,
@@ -221,12 +236,8 @@
                     },
                     xaxis: {
                         categories: cplLabels,
-                        axisBorder: {
-                            show: false,
-                        },
-                        axisTicks: {
-                            show: false
-                        },
+                        axisBorder: { show: false },
+                        axisTicks: { show: false },
                         labels: {
                             style: {
                                 colors: '#823fdb',
@@ -238,60 +249,75 @@
                         min: 0,
                         max: 100,
                         labels: {
-                            style: {
-                                colors: '#823fdb',
-                                fontSize: '12px'
+                            style: { colors: '#823fdb', fontSize: '12px' },
+                            formatter: function (val) {
+                                return val.toFixed(2);
                             }
                         }
                     },
-                    fill: {
-                        opacity: 1,
-                        colors: cplColors
-                    },
+                    fill: { opacity: 1, colors: cplColors100 },
+                    colors: cplColors100,
                     states: {
-                        normal: {
-                            filter: {
-                                type: 'none',
-                                value: 0,
-                            }
-                        },
-                        hover: {
-                            filter: {
-                                type: 'darken',
-                                value: 0.15,
-                            }
-                        },
+                        normal: { filter: { type: 'none', value: 0 } },
+                        hover: { filter: { type: 'darken', value: 0.15 } },
                         active: {
                             allowMultipleDataPointsSelection: false,
-                            filter: {
-                                type: 'darken',
-                                value: 0.35,
-                            }
+                            filter: { type: 'darken', value: 0.35 }
                         }
                     },
                     tooltip: {
-                        style: {
-                            fontSize: '12px'
-                        },
+                        style: { fontSize: '12px' },
                         y: {
                             formatter: function (val) {
                                 return val.toFixed(2);
                             }
                         }
                     },
-                    colors: cplColors,
                     grid: {
                         borderColor: '#f1f1f1',
                         strokeDashArray: 4,
-                        yaxis: {
-                            lines: {
-                                show: true
-                            }
-                        }
+                        yaxis: { lines: { show: true } }
+                    }
+                };
+
+                const chart = new ApexCharts(document.querySelector('#cpl-chart-100'), chartOptions);
+                chart.render();
+
+                // Toggle logic
+                const toggle = document.getElementById('scale-toggle');
+                toggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        chart.updateOptions({
+                            series: [{ data: cplValues4 }],
+                            yaxis: {
+                                min: 0,
+                                max: 4,
+                                labels: {
+                                    formatter: function (val) {
+                                        return val.toFixed(2);
+                                    }
+                                }
+                            },
+                            fill: { colors: cplColors4 },
+                            colors: cplColors4
+                        });
+                    } else {
+                        chart.updateOptions({
+                            series: [{ data: cplValues100 }],
+                            yaxis: {
+                                min: 0,
+                                max: 100,
+                                labels: {
+                                    formatter: function (val) {
+                                        return val.toFixed(2);
+                                    }
+                                }
+                            },
+                            fill: { colors: cplColors100 },
+                            colors: cplColors100
+                        });
                     }
                 });
-
-                chart.render();
             @endif
         });
     </script>
