@@ -10,7 +10,8 @@
 		<!--begin::Mobile logo-->
 		<div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
 			<a href="{{ route('dashboard') }}" class="d-lg-none">
-				<img alt="Logo" src="{{ image('logos/default-small.svg') }}" class="h-30px" />
+				{{-- <img alt="Logo" src="{{ image('logos/default-small.svg') }}" class="h-30px" /> --}}
+                <span class="fw-bolder fs-2qx">{{ config('app.name') }}</span>
 			</a>
 		</div>
 		<!--end::Mobile logo-->
