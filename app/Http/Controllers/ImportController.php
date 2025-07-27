@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\CpmkCplImport;
-use App\Imports\CpmkImport;
 use App\Models\Cpl;
 use App\Models\Cpmk;
 use App\Models\CpmkCpl;
+use App\Models\CpmkPi;
 use App\Models\Dosen;
 use App\Models\ImportLog;
 use App\Models\Mahasiswa;
@@ -19,7 +19,9 @@ use App\Models\MataKuliahSemester;
 use App\Models\Nilai;
 use App\Models\NilaiCpl;
 use App\Models\NilaiCpmk;
+use App\Models\NilaiPi;
 use App\Models\Pengampu;
+use App\Models\Pi;
 use Maatwebsite\Excel\Excel as ExcelFormat;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Settings;
@@ -392,7 +394,7 @@ class ImportController extends Controller
             throw new \Exception("Mata kuliah dengan kode $mataKuliahKode tidak ditemukan dalam kurikulum.");
         }
 
-        if($role !== 'dosen'){
+        if ($role !== 'dosen') {
             $mks = MataKuliahSemester::updateOrCreate(
                 [
                     'mkk_id' => $mkk->id,
@@ -405,8 +407,8 @@ class ImportController extends Controller
                     // Other fields if needed
                 ]
             );
-        }else{
-            $mks = MataKuliahSemester::firstWhere (
+        } else {
+            $mks = MataKuliahSemester::firstWhere(
                 [
                     'mkk_id' => $mkk->id,
                     'tahun' => $tahun,
@@ -461,22 +463,74 @@ class ImportController extends Controller
 
                 // Link to CPL if applicable
                 if (!empty($cpmkData['cpl_number'])) {
-                    $cpl = Cpl::where('nomor', $cpmkData['cpl_number'])
-                        ->where('kurikulum_id', $mkk->kurikulum_id)
-                        ->first();
+                    $cplBobot = $cpmkData['cpl_bobot'];
+                    // PI
+                    if (str_contains($cplBobot, 'PI')) {
+                        $kodePi = $cplBobot;
+                        $parts = explode('-', $kodePi);
+                        $nomorCpl = $parts[1];
+                        $nomorPi = $parts[2];
 
-                    if ($cpl) {
+                        $cpl = Cpl::where('nomor', $nomorCpl)
+                            ->where('kurikulum_id', $mkk->kurikulum_id)
+                            ->first();
+                        if (!$cpl) {
+                            throw new \Exception('CPL tidak ditemukan untuk kurikulum ini');
+                        }
+
+                        $pi = Pi::where('nomor', $nomorPi)
+                            ->where('cpl_id', $cpl->id)
+                            ->where('kurikulum_id', $mkk->kurikulum_id)
+                            ->first();
+                        if (!$pi) {
+                            // throw new \Exception('PI tidak ditemukan untuk kurikulum ini');
+                            $pi = Pi::create([
+                                'nomor' => $nomorPi,
+                                'cpl_id' => $cpl->id,
+                                'kurikulum_id' => $mkk->kurikulum_id,
+                                'deskripsi' => 'PI-' . $nomorCpl . '-' . $nomorPi
+                            ]);
+                        }
+
+                        CpmkPi::updateOrCreate(
+                            [
+                                'cpmk_id' => $cpmk->id,
+                                'pi_id' => $pi->id
+                            ],
+                            [
+                                'bobot' => 1 // PI auto 100%
+                            ]
+                        );
+
                         CpmkCpl::updateOrCreate(
                             [
                                 'cpmk_id' => $cpmk->id,
                                 'cpl_id' => $cpl->id
                             ],
                             [
-                                'bobot' => is_numeric($cpmkData['cpl_bobot']) ?
-                                          (float)$cpmkData['cpl_bobot'] :
-                                          0 // Ensure zero values are handled properly
+                                'bobot' => 1 // PI auto 100%
                             ]
                         );
+
+                    // CPL
+                    } else {
+                        $cpl = Cpl::where('nomor', $cpmkData['cpl_number'])
+                            ->where('kurikulum_id', $mkk->kurikulum_id)
+                            ->first();
+
+                        if ($cpl) {
+                            CpmkCpl::updateOrCreate(
+                                [
+                                    'cpmk_id' => $cpmk->id,
+                                    'cpl_id' => $cpl->id
+                                ],
+                                [
+                                    'bobot' => is_numeric($cpmkData['cpl_bobot']) ?
+                                        (float)$cpmkData['cpl_bobot'] :
+                                        0 // Ensure zero values are handled properly
+                                ]
+                            );
+                        }
                     }
                 }
             }
@@ -500,9 +554,9 @@ class ImportController extends Controller
                 );
 
                 // Check for historical best grade
-                $nilaiHistoris = Nilai::from((new Nilai)->getTable().' as nilai')
-                    ->join((new MataKuliahSemester)->getTable().' as mks', 'mks.id', '=', 'nilai.mks_id')
-                    ->join((new MataKuliahKurikulum)->getTable().' as mkk', 'mkk.id', '=', 'mks.mkk_id')
+                $nilaiHistoris = Nilai::from((new Nilai)->getTable() . ' as nilai')
+                    ->join((new MataKuliahSemester)->getTable() . ' as mks', 'mks.id', '=', 'nilai.mks_id')
+                    ->join((new MataKuliahKurikulum)->getTable() . ' as mkk', 'mkk.id', '=', 'mks.mkk_id')
                     ->where('nilai.mahasiswa_id', $mahasiswa->id)
                     ->where('mkk.id', $mkk->id)
                     ->where('nilai.is_terbaik', true)
@@ -569,6 +623,10 @@ class ImportController extends Controller
             // After all grades are saved, recalculate CPL values
             $nilaiCpl = new NilaiCpl();
             $nilaiCpl->createNilaiCplFromMks($mks);
+
+            // After CPL calculation, also calculate PI values
+            $nilaiPi = new NilaiPi();
+            $nilaiPi->createNilaiPiFromMks($mks);
         }
 
         return $mks;

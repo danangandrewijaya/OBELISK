@@ -117,14 +117,15 @@
                                         </div>
                                     </div>
 
-                                    <h5 class="mb-3">Data CPMK-CPL</h5>
+                                    <h5 class="mb-3">Data CPMK-CPL/PI</h5>
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-striped">
                                             <thead>
                                                 <tr>
                                                     <th>Kode CPMK</th>
                                                     <th>Deskripsi CPMK</th>
-                                                    <th>Kode CPL (Bobot%)</th>
+                                                    <th>Kode CPL/PI (Bobot%)</th>
+                                                    <th>Level Taksonomi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -137,16 +138,18 @@
                                                         <tr>
                                                             <td>{{ $cpmkCpl['kode'] }}</td>
                                                             <td>{{ $cpmkCpl['deskripsi'] }}</td>
-                                                            <td>{{ (!empty($cpmkCpl['cpl_number']) && isset($cpmkCpl['cpl_bobot'])) ? 'CPL'.$cpmkCpl['cpl_number'].' ('.(floatval($cpmkCpl['cpl_bobot'])*100).'%)' : '-' }}</td>
+                                                            <td>{{ (is_string($cpmkCpl['cpl_bobot']) && str_contains($cpmkCpl['cpl_bobot'], 'PI')) ? $cpmkCpl['cpl_bobot'].' (100%)' : ((!empty($cpmkCpl['cpl_number']) && isset($cpmkCpl['cpl_bobot'])) ? 'CPL'.$cpmkCpl['cpl_number'].' ('.(floatval($cpmkCpl['cpl_bobot'])*100).'%)' : '-') }}</td>
+                                                            <td>{{ $cpmkCpl['level_taksonomi'] }}</td>
                                                         </tr>
                                                     @endforeach
                                                 @else
-                                                    @foreach(array_slice($sheetData, 18, 14) as $row)
+                                                    @foreach(array_slice($sheetData, 19, 14) as $row)
                                                         @if(!empty($row[1]))
                                                             <tr>
                                                                 <td>{{ $row[1] }}</td>
                                                                 <td>{{ $row[2] }}</td>
                                                                 <td>{{ collect(array_slice($row, 3, 13))->search(fn($value) => $value == 1) !== false ? 'CPL' . (collect(array_slice($row, 3, 13))->search(fn($value) => $value == 1) + 1) : '-' }}</td>
+                                                                <td>{{ $row[19] }}</td>
                                                             </tr>
                                                         @endif
                                                     @endforeach

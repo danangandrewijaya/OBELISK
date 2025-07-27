@@ -15,6 +15,7 @@ class Pi extends Model
         'nomor',
         'deskripsi',
         'cpl_id',
+        'kurikulum_id'
     ];
 
     public function cpl()
