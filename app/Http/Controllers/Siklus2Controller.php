@@ -2,15 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cpl;
 use App\Models\Kurikulum;
-use App\Models\MataKuliahKurikulum;
 use App\Models\MataKuliahSemester;
-use App\Models\NilaiCpl;
+use App\Models\NilaiPi;
 use App\Models\Pi;
-use App\Models\Siklus;
 use App\Models\Siklus2;
-use App\Models\SiklusCpl;
 use App\Models\SiklusPi;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -202,6 +198,7 @@ class Siklus2Controller extends Controller
 
         foreach($pis as $pi) {
             $mataKuliahSemesters = $siklus->getMataKuliahSemestersByPi($pi->id);
+
             $totalNilai = 0;
             $totalMks = 0;
             $detailNilai = [];
@@ -209,10 +206,11 @@ class Siklus2Controller extends Controller
             foreach($mataKuliahSemesters as $mks) {
                 // Process each mata kuliah semester directly
                 // Get the associated matakuliah kurikulum for display purposes
-                $mkk = $mks->mkk;                // Calculate average CPL value for this MKS
-                $nilaiCpls = NilaiCpl::whereHas('nilai', function($query) use ($mks) {
+                $mkk = $mks->mkk;
+                // Calculate average CPL value for this MKS
+                $nilaiCpls = NilaiPi::whereHas('nilai', function($query) use ($mks) {
                     $query->where('mks_id', $mks->id);
-                })->where('cpl_id', $pi->id)->get();
+                })->where('pi_id', $pi->id)->get();
 
                 if($nilaiCpls->count() > 0) {
                     $avgNilai = $nilaiCpls->avg('nilai_angka');
