@@ -104,7 +104,13 @@ class Siklus2Controller extends Controller
     {
         $cpls = Pi::whereHas('cpl', function($query) use ($siklus) {
             $query->where('kurikulum_id', $siklus->kurikulum_id);
-        })->with('cpl')->orderBy('nomor')->get();
+        })
+        ->with('cpl')
+        ->join('mst_cpl', 'mst_pi.cpl_id', '=', 'mst_cpl.id')
+        ->orderBy('mst_cpl.nomor')
+        ->orderBy('mst_pi.nomor')
+        ->select('mst_pi.*')
+        ->get();
         // Get available mata kuliah semester that have CPL connections within the siklus date range
         $availableMkss = MataKuliahSemester::with('mkk')
             ->where('tahun', '>=', $siklus->tahun_mulai)
