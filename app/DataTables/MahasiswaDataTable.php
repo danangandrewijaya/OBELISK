@@ -34,7 +34,12 @@ class MahasiswaDataTable extends DataTable
      */
     public function query(Mahasiswa $model): QueryBuilder
     {
-        return $model->with('prodi')->newQuery();
+        $query = $model->with('prodi')->newQuery();
+        $prodiId = session('prodi_id');
+        if ($prodiId) {
+            $query->where('prodi_id', $prodiId);
+        }
+        return $query;
     }
 
     /**

@@ -25,33 +25,62 @@ class DashboardController extends Controller
 
     public function getStats(Request $request): JsonResponse
     {
+    // Filter by active prodi if set in session
+    $prodiId = session('prodi_id');
+
         // Get semester filter parameter or set 'all' as default
         $semester = $request->input('semester', 'all');
 
         // Get all unique tahun and semester combinations for the filter
-        $semesterOptions = MataKuliahSemester::select('tahun', 'semester')
+        $semesterOptionsQuery = MataKuliahSemester::select('tahun', 'semester')
             ->distinct()
             ->orderBy('tahun', 'desc')
-            ->orderBy('semester', 'desc')
-            ->get()
-            ->map(function ($item) {
-                return [
-                    'id' => $item->tahun . '-' . $item->semester,
-                    'text' => 'Semester ' . $item->tahun . '/' . $item->semester
-                ];
+            ->orderBy('semester', 'desc');
+
+        if ($prodiId) {
+            // scope by prodi through mkk->kurikulum
+            $semesterOptionsQuery->whereHas('mkk', function ($q) use ($prodiId) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                    $q2->where('prodi_id', $prodiId);
+                });
             });
+        }
+
+        $semesterOptions = $semesterOptionsQuery->get()->map(function ($item) {
+            return [
+                'id' => $item->tahun . '-' . $item->semester,
+                'text' => 'Semester ' . $item->tahun . '/' . $item->semester
+            ];
+        });
 
         // Get current active tahun and semester for display
-        $latestSemester = MataKuliahSemester::select('tahun', 'semester')
+        $latestSemesterQuery = MataKuliahSemester::select('tahun', 'semester')
             ->orderBy('tahun', 'desc')
-            ->orderBy('semester', 'desc')
-            ->first();
+            ->orderBy('semester', 'desc');
+
+        if ($prodiId) {
+            $latestSemesterQuery->whereHas('mkk', function ($q) use ($prodiId) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                    $q2->where('prodi_id', $prodiId);
+                });
+            });
+        }
+
+        $latestSemester = $latestSemesterQuery->first();
 
         $tahunAktif = $latestSemester ? $latestSemester->tahun : date('Y');
         $semesterAktif = $latestSemester ? $latestSemester->semester : 1;
 
         // Initialize query builder
         $mksQuery = MataKuliahSemester::query();
+
+        if ($prodiId) {
+            $mksQuery->whereHas('mkk', function ($q) use ($prodiId) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                    $q2->where('prodi_id', $prodiId);
+                });
+            });
+        }
 
         // Apply semester filter if not 'all'
         if ($semester !== 'all' && strpos($semester, '-') !== false) {
@@ -64,20 +93,36 @@ class DashboardController extends Controller
         $mksCount = $mksQuery->count();
 
         // Get CPMK count for selected semester(s)
-        $cpmkCount = Cpmk::whereHas('mks', function ($query) use ($semester) {
+        $cpmkCount = Cpmk::whereHas('mks', function ($query) use ($semester, $prodiId) {
             if ($semester !== 'all' && strpos($semester, '-') !== false) {
                 list($tahun, $semesterNum) = explode('-', $semester);
                 $query->where('tahun', $tahun)
                       ->where('semester', $semesterNum);
             }
+
+            if ($prodiId) {
+                $query->whereHas('mkk', function ($q) use ($prodiId) {
+                    $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                        $q2->where('prodi_id', $prodiId);
+                    });
+                });
+            }
         })->count();
 
         // Get CPL count for selected semester(s)
-        $cplCount = Cpl::whereHas('cpmks.mks', function ($query) use ($semester) {
+        $cplCount = Cpl::whereHas('cpmks.mks', function ($query) use ($semester, $prodiId) {
             if ($semester !== 'all' && strpos($semester, '-') !== false) {
                 list($tahun, $semesterNum) = explode('-', $semester);
                 $query->where('tahun', $tahun)
                       ->where('semester', $semesterNum);
+            }
+
+            if ($prodiId) {
+                $query->whereHas('mkk', function ($q) use ($prodiId) {
+                    $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                        $q2->where('prodi_id', $prodiId);
+                    });
+                });
             }
         })->count();
 
@@ -94,6 +139,12 @@ class DashboardController extends Controller
                                      ->where('mst_mata_kuliah_semester.semester', $semesterNum);
         }
 
+        if ($prodiId) {
+            // mst_cpl -> kurikulum -> prodi
+            $cpmkCplDistributionQuery->leftJoin('mst_kurikulum', 'mst_cpl.kurikulum_id', '=', 'mst_kurikulum.id')
+                ->where('mst_kurikulum.prodi_id', $prodiId);
+        }
+
         $cpmkCplDistribution = $cpmkCplDistributionQuery->groupBy('mst_cpl.nomor')
                                                         ->orderBy('mst_cpl.nomor')
                                                         ->get();
@@ -108,6 +159,12 @@ class DashboardController extends Controller
             list($tahun, $semesterNum) = explode('-', $semester);
             $curriculumDistributionQuery->where('mst_mata_kuliah_semester.tahun', $tahun)
                                        ->where('mst_mata_kuliah_semester.semester', $semesterNum);
+        }
+
+        if ($prodiId) {
+            // mst_mata_kuliah_kurikulum -> kurikulum -> prodi
+            $curriculumDistributionQuery->leftJoin('mst_kurikulum', 'mst_mata_kuliah_kurikulum.kurikulum_id', '=', 'mst_kurikulum.id')
+                ->where('mst_kurikulum.prodi_id', $prodiId);
         }
 
         $curriculumDistribution = $curriculumDistributionQuery->groupBy('mst_mata_kuliah_semester.tahun', 'mst_mata_kuliah_semester.semester')

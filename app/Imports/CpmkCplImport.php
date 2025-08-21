@@ -111,7 +111,14 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
             $dosenId = session('dosen_id');
 
             // Cari MKS berdasarkan kode, tahun, semester
-            $mkk = MataKuliahKurikulum::whereRaw('LOWER(kode) = ?', [strtolower($mataKuliahKode)])->first();
+            $mkkQuery = MataKuliahKurikulum::whereRaw('LOWER(kode) = ?', [strtolower($mataKuliahKode)]);
+            $prodiId = session('prodi_id');
+            if ($prodiId) {
+                $mkkQuery->whereHas('kurikulum', function ($q) use ($prodiId) {
+                    $q->where('prodi_id', $prodiId);
+                });
+            }
+            $mkk = $mkkQuery->first();
             if ($mkk) {
                 $mks = MataKuliahSemester::where('mkk_id', $mkk->id)
                     ->where('tahun', substr($rows[1][$cell2], 0, 4))
@@ -237,7 +244,14 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
 
                 if (isset($cpmkCpl[$cpmk]['cpl'])) {
                     // Get kurikulum_id from MataKuliahKurikulum
-                    $mkk = MataKuliahKurikulum::whereRaw('LOWER(kode) = ?', [strtolower($mataKuliahKode)])->first();
+                    $mkkQuery = MataKuliahKurikulum::whereRaw('LOWER(kode) = ?', [strtolower($mataKuliahKode)]);
+                    $prodiId = session('prodi_id');
+                    if ($prodiId) {
+                        $mkkQuery->whereHas('kurikulum', function ($q) use ($prodiId) {
+                            $q->where('prodi_id', $prodiId);
+                        });
+                    }
+                    $mkk = $mkkQuery->first();
                     if (!$mkk) {
                         throw new \Exception('Mata kuliah kurikulum tidak ditemukan');
                     }
@@ -270,7 +284,14 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
 
     public function getMataKuliahSemester($mataKuliahKode, $tahun, $semester, $koord_pengampu = null, $gpm = null, $kaprodi = null)
     {
-        $mkk = MataKuliahKurikulum::whereRaw('LOWER(kode) = ?', [strtolower($mataKuliahKode)])->first();
+        $mkkQuery = MataKuliahKurikulum::whereRaw('LOWER(kode) = ?', [strtolower($mataKuliahKode)]);
+        $prodiId = session('prodi_id');
+        if ($prodiId) {
+            $mkkQuery->whereHas('kurikulum', function ($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+        }
+        $mkk = $mkkQuery->first();
         if (!$mkk) {
             throw new \Exception('Mata kuliah kurikulum tidak ditemukan');
         }

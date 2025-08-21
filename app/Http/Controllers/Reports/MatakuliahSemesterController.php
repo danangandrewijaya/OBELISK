@@ -11,8 +11,25 @@ class MatakuliahSemesterController extends Controller
 {
     public function index(Request $request, MatakuliahSemesterDataTable $dataTable)
     {
-        $years = MataKuliahSemester::distinct()->pluck('tahun')->sort()->values();
-        $semesters = MataKuliahSemester::distinct()->pluck('semester')->sort()->values();
+        $prodiId = session('prodi_id');
+
+        $yearsQuery = MataKuliahSemester::query();
+        $semestersQuery = MataKuliahSemester::query();
+        if ($prodiId) {
+            $yearsQuery->whereHas('mkk', function ($q) use ($prodiId) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                    $q2->where('prodi_id', $prodiId);
+                });
+            });
+            $semestersQuery->whereHas('mkk', function ($q) use ($prodiId) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                    $q2->where('prodi_id', $prodiId);
+                });
+            });
+        }
+
+        $years = $yearsQuery->distinct()->pluck('tahun')->sort()->values();
+        $semesters = $semestersQuery->distinct()->pluck('semester')->sort()->values();
 
         return $dataTable->render('report.matakuliah-semester.list', compact('years', 'semesters'));
     }
@@ -20,7 +37,7 @@ class MatakuliahSemesterController extends Controller
     public function show(MataKuliahSemester $matakuliahSemester)
     {
         $matakuliahSemester->load([
-            'mkk', 
+            'mkk',
             'cpmk.cpmkCpl.cpl',
             'nilaiMahasiswa.mahasiswa.prodi',
             'nilaiMahasiswa.nilaiCpmk.cpmk'

@@ -93,7 +93,7 @@
 			</div>
 			<!--end:Menu item-->
 			<!--begin:Menu item-->
-            @if(session('active_role') === 'admin')
+            @if(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI)
 			<div class="menu-item">
 				<!--begin:Menu link-->
 				<a class="menu-link {{ request()->routeIs('siklus.index') ? 'active' : '' }}" href="{{ route('siklus.index') }}">
@@ -121,7 +121,7 @@
             @endif
 			<!--end:Menu item-->
 
-            @if(session('active_role') === 'admin')
+            @if(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI)
 			<!--begin:Menu item-->
 			<div class="menu-item pt-5">
 				<!--begin:Menu content-->

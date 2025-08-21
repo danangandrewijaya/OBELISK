@@ -65,6 +65,15 @@ class MatakuliahSemesterDataTable extends DataTable
         $query = $model->newQuery()
             ->with(['mkk', 'pengampuDosens']);
 
+        $prodiId = session('prodi_id');
+        if ($prodiId) {
+            $query->whereHas('mkk', function ($q) use ($prodiId) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                    $q2->where('prodi_id', $prodiId);
+                });
+            });
+        }
+
         // Apply kurikulum filter if present
         $kurikulum = $this->request()->get('kurikulum');
         if ($this->request()->has('kurikulum')) {

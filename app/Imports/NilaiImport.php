@@ -154,10 +154,11 @@ class NilaiImport implements ToCollection, WithCalculatedFormulas
 
             $mahasiswa = Mahasiswa::where('nim', $nim)->first();
             if (!$mahasiswa) {
+                $prodiId = session('prodi_id') ?? 1;
                 $mahasiswa = Mahasiswa::create([
                     'nim' => $nim,
                     'nama' => preg_replace('/\s*\(.*\)$/', '', $row[1]),
-                    'prodi_id' => 1, // belum ada di excel
+                    'prodi_id' => $prodiId,
                     'kurikulum_id' => $kurikulumId, // Menggunakan kurikulum_id dari MKK
                     'angkatan' => 2000 + (int) substr($nim, 6, 2),
                 ]);

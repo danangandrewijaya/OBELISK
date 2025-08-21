@@ -27,8 +27,11 @@ class MahasiswaController extends Controller
         $cpls = Cpl::where('kurikulum_id', $mahasiswa->kurikulum_id)
             ->orderBy('nomor')
             ->get();
-        
-        $kurikulums = Kurikulum::all();
+
+    $prodiId = session('prodi_id');
+    $kurikulumsQuery = Kurikulum::query();
+    if ($prodiId) $kurikulumsQuery->where('prodi_id', $prodiId);
+    $kurikulums = $kurikulumsQuery->get();
 
         // Nilai untuk transkrip lengkap (tanpa filter kurikulum)
         $nilaiTranskrip = $mahasiswa->nilai()->with('mks.mkk')->get();

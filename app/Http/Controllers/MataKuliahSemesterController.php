@@ -21,9 +21,33 @@ class MataKuliahSemesterController extends Controller
      */
     public function index(Request $request, MatakuliahSemesterDataTable $dataTable)
     {
-        $kurikulums = Kurikulum::get()->values();
-        $years = MataKuliahSemester::distinct()->pluck('tahun')->sort()->values();
-        $semesters = MataKuliahSemester::distinct()->pluck('semester')->sort()->values();
+        $prodiId = session('prodi_id');
+
+        $kurikulumsQuery = Kurikulum::query();
+        if ($prodiId) {
+            $kurikulumsQuery->where('prodi_id', $prodiId);
+        }
+        $kurikulums = $kurikulumsQuery->get()->values();
+
+        $yearsQuery = MataKuliahSemester::query();
+        if ($prodiId) {
+            $yearsQuery->whereHas('mkk', function ($q) use ($prodiId) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                    $q2->where('prodi_id', $prodiId);
+                });
+            });
+        }
+        $years = $yearsQuery->distinct()->pluck('tahun')->sort()->values();
+
+        $semestersQuery = MataKuliahSemester::query();
+        if ($prodiId) {
+            $semestersQuery->whereHas('mkk', function ($q) use ($prodiId) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
+                    $q2->where('prodi_id', $prodiId);
+                });
+            });
+        }
+        $semesters = $semestersQuery->distinct()->pluck('semester')->sort()->values();
 
         return $dataTable->render('matakuliah-semester.index', compact('kurikulums', 'years', 'semesters'));
     }
@@ -35,7 +59,14 @@ class MataKuliahSemesterController extends Controller
      */
     public function create()
     {
-        $matakuliahs = MataKuliahKurikulum::orderBy('kode')->get();
+        $prodiId = session('prodi_id');
+        $matakuliahsQuery = MataKuliahKurikulum::orderBy('kode');
+        if ($prodiId) {
+            $matakuliahsQuery->whereHas('kurikulum', function ($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+        }
+        $matakuliahs = $matakuliahsQuery->get();
         $dosens = Dosen::orderBy('nama')->get();
         $tahunOptions = range(date('Y') - 5, date('Y') + 1);
         $semesterOptions = [1, 2];
@@ -166,7 +197,14 @@ class MataKuliahSemesterController extends Controller
      */
     public function edit(MataKuliahSemester $matakuliahSemester)
     {
-        $matakuliahs = MataKuliahKurikulum::orderBy('kode')->get();
+        $prodiId = session('prodi_id');
+        $matakuliahsQuery = MataKuliahKurikulum::orderBy('kode');
+        if ($prodiId) {
+            $matakuliahsQuery->whereHas('kurikulum', function ($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+        }
+        $matakuliahs = $matakuliahsQuery->get();
         $dosens = Dosen::orderBy('nama')->get();
         $tahunOptions = range(date('Y') - 5, date('Y') + 1);
         $semesterOptions = [1, 2];
