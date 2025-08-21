@@ -2,7 +2,7 @@
     <a href="{{ route('master.matakuliah-semester.show', $row) }}" class="btn btn-sm btn-info" title="Detail">
         <i class="fas fa-eye"></i>
     </a>
-    @if(session('active_role') !== 'dosen')
+    @if(session('active_role') !== App\Core\Constants::ROLE_DOSEN)
     <a href="{{ route('master.matakuliah-semester.edit', $row) }}" class="btn btn-sm btn-warning" title="Edit">
         <i class="fas fa-edit"></i>
     </a>

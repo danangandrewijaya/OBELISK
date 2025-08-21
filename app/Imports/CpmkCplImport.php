@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Core\Constants;
 use App\Models\Dosen;
 use App\Models\MataKuliahKurikulum;
 use App\Models\MataKuliahSemester;
@@ -106,7 +107,7 @@ class CpmkCplImport implements ToCollection, WithMultipleSheets, HasReferencesTo
             'cpmk_cpl' => $cpmkCplData, // Save CPMK-CPL data in session
         ];
 
-        if(session('active_role') === 'dosen'){
+        if(session('active_role') === Constants::ROLE_DOSEN){
             $dosenId = session('dosen_id');
 
             // Cari MKS berdasarkan kode, tahun, semester

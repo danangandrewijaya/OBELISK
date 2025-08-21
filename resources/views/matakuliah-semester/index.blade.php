@@ -9,7 +9,7 @@
         <div class="card-header">
             <div class="card-title">Data Mata Kuliah Semester</div>
             <div class="card-toolbar">
-                @if(session('active_role') !== 'dosen')
+                @if(session('active_role') !== App\Core\Constants::ROLE_DOSEN)
                 <a href="{{ route('master.matakuliah-semester.create') }}" class="btn btn-sm btn-primary">
                     <i class="fas fa-plus-circle"></i> Tambah Data
                 </a>

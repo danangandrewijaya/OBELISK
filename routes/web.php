@@ -36,12 +36,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('/user-management/permissions', PermissionManagementController::class);
     });
 
-    // Import Routes
-    Route::get('/import', [ImportController::class, 'showImportForm'])->name('import.form');
-    Route::get('/import/preview', [ImportController::class, 'previewImport'])->name('import.preview');
-    Route::post('/import/preview', [ImportController::class, 'previewImport']);
-    Route::post('/import/process', [ImportController::class, 'processImport'])->name('import.process');
-    Route::get('/import/cancel', [ImportController::class, 'cancelImport'])->name('import.cancel');
+    // Import CPL Routes
+    Route::prefix('import')->name('import.')->group(function () {
+        Route::get('/', [ImportController::class, 'showImportForm'])->name('form');
+        Route::get('/preview', [ImportController::class, 'previewImport'])->name('preview');
+        Route::post('/preview', [ImportController::class, 'previewImport']);
+        Route::post('/process', [ImportController::class, 'processImport'])->name('process');
+        Route::get('/cancel', [ImportController::class, 'cancelImport'])->name('cancel');
+    });
 
     Route::prefix('report')->name('report.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Core\Constants;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Dosen;
@@ -48,7 +49,7 @@ class AuthenticatedSessionController extends Controller
             // Jika hanya satu role, set ke session dan redirect sesuai role
             $role = $roles->first();
             session(['active_role' => $role]);
-            if($role === 'dosen') {
+            if($role === Constants::ROLE_DOSEN) {
                 $nip = auth()->user()->nip;
                 $user = Dosen::where('nip', $nip)->first();
                 $dosen = Dosen::where('id', $user->id)->first();

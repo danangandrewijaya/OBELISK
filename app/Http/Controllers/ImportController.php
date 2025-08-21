@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Core\Constants;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -35,7 +36,7 @@ class ImportController extends Controller
     {
         $user = auth()->user();
         $role = session('active_role');
-        // if($role === 'dosen') {
+        // if($role === Constants::ROLE_DOSEN) {
         //     return redirect('/')->with('warning', 'Fitur impor untuk dosen belum tersedia.');
         // }
         $dosens = Dosen::orderBy('nama')->get();
@@ -90,7 +91,7 @@ class ImportController extends Controller
             $rules = [
                 'excel_file' => 'required|mimes:xlsx,xls|max:10240',
             ];
-            if ($role !== 'dosen') {
+            if ($role !== Constants::ROLE_DOSEN) {
                 $rules['pengampu_ids'] = 'required|array|min:1';
                 $rules['pengampu_ids.*'] = 'exists:mst_dosen,id';
             }
@@ -394,7 +395,7 @@ class ImportController extends Controller
             throw new \Exception("Mata kuliah dengan kode $mataKuliahKode tidak ditemukan dalam kurikulum.");
         }
 
-        if ($role !== 'dosen') {
+        if ($role !== Constants::ROLE_DOSEN) {
             $mks = MataKuliahSemester::updateOrCreate(
                 [
                     'mkk_id' => $mkk->id,
@@ -418,7 +419,7 @@ class ImportController extends Controller
         }
 
         // 3. Save pengampu associations
-        if ($role !== 'dosen' && !empty($pengampuIds)) {
+        if ($role !== Constants::ROLE_DOSEN && !empty($pengampuIds)) {
             // Use updateOrCreate for each pengampu
             foreach ($pengampuIds as $dosenId) {
                 Pengampu::updateOrCreate(

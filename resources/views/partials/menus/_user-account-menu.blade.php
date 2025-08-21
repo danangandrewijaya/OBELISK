@@ -21,7 +21,7 @@
                 </div>
                 @php
                     $email = '-';
-                    if(session('active_role') === 'dosen'){
+                    if(session('active_role') === \App\Core\Constants::ROLE_DOSEN){
                         $email = session('nip');
                     }else{
                         $email = Auth::user()->email;

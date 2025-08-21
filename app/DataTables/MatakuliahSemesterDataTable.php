@@ -9,6 +9,7 @@ use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
 use Yajra\DataTables\Services\DataTable;
+use App\Core\Constants;
 
 class MatakuliahSemesterDataTable extends DataTable
 {
@@ -84,7 +85,7 @@ class MatakuliahSemesterDataTable extends DataTable
 
         $role = session('active_role');
         $dosenId = session('dosen_id');
-        if ($role === 'dosen') {
+        if ($role === Constants::ROLE_DOSEN) {
             $query->whereHas('pengampuDosens', function ($q) use ($dosenId) {
                 $q->where('dosen_id', $dosenId);
             });

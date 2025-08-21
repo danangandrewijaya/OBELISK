@@ -12,7 +12,7 @@
                 <a href="{{ route('master.matakuliah-semester.index') }}" class="btn btn-sm btn-secondary me-2">
                     <i class="fas fa-arrow-left"></i> Kembali
                 </a>
-                @if(session('active_role') !== 'dosen')
+                @if(session('active_role') !== App\Core\Constants::ROLE_DOSEN)
                 <a href="{{ route('master.matakuliah-semester.edit', $matakuliahSemester) }}" class="btn btn-sm btn-warning">
                     <i class="fas fa-edit"></i> Edit
                 </a>
@@ -465,7 +465,7 @@
 
                     // Setup keterangan form if needed
 
-                    const isDosen = @json(session('active_role') === 'dosen');
+                    const isDosen = @json(session('active_role') === App\Core\Constants::ROLE_DOSEN);
                     const isAdmin = @json(session('active_role') === 'admin');
                     if (isRemidiCpmk && (isAdmin || isDosen)) {
                         document.getElementById('keterangan-nilai-id').value = nilaiId;

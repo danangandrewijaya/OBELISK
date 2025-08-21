@@ -53,7 +53,7 @@
                     </div>
                     @endif
 
-                    @if (session('active_role') !== 'dosen')
+                    @if (session('active_role') !== App/Core/Constants::ROLE_DOSEN)
                     <div class="card mb-4">
                         <div class="card-header">
                             <h4 class="card-title">Pengampu Terpilih</h4>
