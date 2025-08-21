@@ -106,6 +106,32 @@
                     </div>
                 </div>
 
+                <!-- CPL per-angkatan comparison controls + chart -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card card-flush">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="me-3">
+                                    <label class="form-label mb-1">Pilih Angkatan</label>
+                                    <select id="angkatan-select" class="form-select" multiple style="min-width:200px">
+                                        @if(!empty($cplPerAngkatanData) && count($cplPerAngkatanData['years']) > 0)
+                                            @foreach($cplPerAngkatanData['years'] as $year)
+                                                <option value="{{ $year }}">{{ $year }}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-0">Perbandingan Rata-rata CPL per Angkatan</h5>
+                                    <div class="text-muted small">Pilih satu atau beberapa angkatan untuk membandingkan rata-rata tiap CPL.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- per-angkatan summary container removed; using comparison chart below -->
+
                 @foreach($cplData as $cplId => $data)
                     <div class="card mb-5" id="cpl-{{ $data['cpl']->nomor }}">
                         <div class="card-header">
@@ -199,7 +225,7 @@
 
                 @foreach($cplData as $cplId => $data)
                     cplLabels.push('CPL {{ $data['cpl']->nomor }}');
-                    
+
                     // Data for scale 100
                     cplValues100.push({{ $data['rata_rata'] }});
                     cplColors100.push('{{ $data['rata_rata'] >= 75 ? '#50cd89' : ($data['rata_rata'] >= 65 ? '#ffc700' : '#f1416c') }}');
@@ -283,41 +309,159 @@
                 const chart = new ApexCharts(document.querySelector('#cpl-chart-100'), chartOptions);
                 chart.render();
 
-                // Toggle logic
+                // Toggle logic for main CPL chart
                 const toggle = document.getElementById('scale-toggle');
                 toggle.addEventListener('change', function() {
                     if (this.checked) {
                         chart.updateOptions({
                             series: [{ data: cplValues4 }],
-                            yaxis: {
-                                min: 0,
-                                max: 4,
-                                labels: {
-                                    formatter: function (val) {
-                                        return val.toFixed(2);
-                                    }
-                                }
-                            },
-                            fill: { colors: cplColors4 },
-                            colors: cplColors4
+                            yaxis: { min: 0, max: 4, labels: { formatter: function (val) { return val.toFixed(2); } } },
+                            fill: { colors: cplColors4 }, colors: cplColors4
                         });
                     } else {
                         chart.updateOptions({
                             series: [{ data: cplValues100 }],
-                            yaxis: {
-                                min: 0,
-                                max: 100,
-                                labels: {
-                                    formatter: function (val) {
-                                        return val.toFixed(2);
-                                    }
-                                }
-                            },
-                            fill: { colors: cplColors100 },
-                            colors: cplColors100
+                            yaxis: { min: 0, max: 100, labels: { formatter: function (val) { return val.toFixed(2); } } },
+                            fill: { colors: cplColors100 }, colors: cplColors100
                         });
                     }
                 });
+
+                // --- Per-angkatan chart ---
+                @if(!empty($perAngkatanData) && count($perAngkatanData['labels']) > 0)
+                    const angkatanLabels = {!! json_encode($perAngkatanData['labels']) !!};
+                    const angkatanValues100 = {!! json_encode($perAngkatanData['values_100']) !!};
+                    const angkatanValues4 = {!! json_encode($perAngkatanData['values_4']) !!};
+
+                    const angkatanColors100 = angkatanValues100.map(function(v) { return v >= 75 ? '#50cd89' : (v >= 65 ? '#ffc700' : '#f1416c'); });
+                    const angkatanColors4 = angkatanValues4.map(function(v) { return v >= 3.0 ? '#50cd89' : (v >= 2.5 ? '#ffc700' : '#f1416c'); });
+
+                    const angkatanOptions = {
+                        series: [{ name: 'Rata-rata per Angkatan', data: angkatanValues100 }],
+                        chart: { type: 'bar', height: 320, toolbar: { show: false } },
+                        plotOptions: { bar: { distributed: true, borderRadius: 4, columnWidth: '50%' } },
+                        dataLabels: { enabled: false },
+                        xaxis: { categories: angkatanLabels, labels: { style: { colors: '#823fdb', fontSize: '12px' } } },
+                        yaxis: { min: 0, max: 100, labels: { formatter: function(v){ return v.toFixed(2); } } },
+                        fill: { colors: angkatanColors100 },
+                        colors: angkatanColors100,
+                        tooltip: { y: { formatter: function(v){ return v.toFixed(2); } } },
+                        grid: { borderColor: '#f1f1f1', strokeDashArray: 4 }
+                    };
+
+                @endif
+
+                // --- CPL per-angkatan comparison ---
+                @if(!empty($cplPerAngkatanData) && count($cplPerAngkatanData['years']) > 0)
+                    // Prepare labels and datasets
+                    const comparisonCplLabels = {!! json_encode($cplPerAngkatanData['cpl_labels']) !!};
+                    const comparisonYears = {!! json_encode($cplPerAngkatanData['years']) !!};
+                    const comparisonDatasets = {!! json_encode($cplPerAngkatanData['datasets']) !!};
+
+                    // Chart container
+                    const comparisonContainer = document.createElement('div');
+                    comparisonContainer.id = 'cpl-per-angkatan-chart';
+                    comparisonContainer.style.height = '360px';
+
+                    // Prefer stable insertion point: before the per-angkatan card if present, otherwise after the select card
+                    const perAngkatanCard = document.querySelector('#per-angkatan-chart-100') ? document.querySelector('#per-angkatan-chart-100').closest('.card') : null;
+                    if (perAngkatanCard && perAngkatanCard.parentNode) {
+                        perAngkatanCard.parentNode.insertBefore(comparisonContainer, perAngkatanCard);
+                    } else {
+                        const selectCard = document.getElementById('angkatan-select').closest('.card');
+                        selectCard.parentNode.insertBefore(comparisonContainer, selectCard.nextSibling);
+                    }
+
+                    // Debug: print loaded dataset shapes
+                    console.log('CPL Labels:', cplLabels);
+                    console.log('Comparison CPL Labels:', comparisonCplLabels);
+                    console.log('Available Years:', comparisonYears);
+                    console.log('Datasets (per year):', comparisonDatasets);
+
+                    let comparisonChart = null;
+
+                    function renderComparison(selectedYears) {
+                        console.log('Render comparison for years:', selectedYears);
+
+                        // If no selection, clear chart
+                        if (!selectedYears || selectedYears.length === 0) {
+                            if (comparisonChart) {
+                                try { comparisonChart.destroy(); } catch(e){ console.warn(e); }
+                                comparisonChart = null;
+                            }
+                            comparisonContainer.innerHTML = '<div class="text-center text-muted">Pilih angkatan untuk mulai membandingkan.</div>';
+                            return;
+                        }
+
+                        // Ensure container is attached and empty before rendering
+                        comparisonContainer.innerHTML = '';
+
+                        // stable color palette
+                        const palette = ['#4BC0C0','#36A2EB','#FF6384','#FFCE56','#8E44AD','#2ECC71','#E67E22','#3498DB'];
+
+                        const series = selectedYears.map(function(year, idx) {
+                            const d = comparisonDatasets[year];
+                            console.log('Year', year, 'data raw:', d);
+
+                            // Normalize data array length to match labels
+                            const needed = comparisonCplLabels.length;
+                            let dataArr = [];
+                            if (d && Array.isArray(d.data)) {
+                                dataArr = d.data.slice(0, needed);
+                                // pad with zeros if shorter
+                                while (dataArr.length < needed) dataArr.push(0);
+                            } else {
+                                dataArr = Array(needed).fill(0);
+                            }
+
+                            // Ensure numeric values
+                            dataArr = dataArr.map(v => (v === null || v === undefined || isNaN(v)) ? 0 : Number(v));
+
+                            return {
+                                name: year,
+                                data: dataArr,
+                                color: palette[idx % palette.length]
+                            };
+                        });
+
+                        // Final safety: ensure every series has data array equal to labels length
+                        series.forEach(s => {
+                            if (!s.data || s.data.length !== comparisonCplLabels.length) {
+                                s.data = Array(comparisonCplLabels.length).fill(0);
+                            }
+                        });
+
+                        const options = {
+                            series: series,
+                            chart: { type: 'bar', height: 360, stacked: false, toolbar: { show: false } },
+                            plotOptions: { bar: { borderRadius: 4, columnWidth: '50%' } },
+                            xaxis: { categories: comparisonCplLabels },
+                            yaxis: { min: 0, max: 100 },
+                            legend: { position: 'top' },
+                            tooltip: { y: { formatter: function(v){ return v.toFixed(2); } } },
+                            colors: series.map(s => s.color)
+                        };
+
+                        try {
+                            if (comparisonChart) { try { comparisonChart.destroy(); } catch(e){ console.warn(e); } }
+                            comparisonChart = new ApexCharts(document.querySelector('#cpl-per-angkatan-chart'), options);
+                            comparisonChart.render();
+                        } catch (err) {
+                            console.error('Error rendering comparison chart', err, {series, comparisonCplLabels});
+                            comparisonContainer.innerHTML = '<div class="text-danger">Terjadi kesalahan saat menampilkan grafik. Cek console untuk detail.</div>';
+                        }
+                    }
+
+                    // Init message
+                    comparisonContainer.innerHTML = '<div class="text-center text-muted">Pilih angkatan untuk mulai membandingkan.</div>';
+
+                    // Wire selection
+                    const angkatanSelect = document.getElementById('angkatan-select');
+                    angkatanSelect.addEventListener('change', function() {
+                        const selected = Array.from(this.selectedOptions).map(o => o.value);
+                        renderComparison(selected);
+                    });
+                @endif
             @endif
         });
     </script>

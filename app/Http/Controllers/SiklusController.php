@@ -56,7 +56,9 @@ class SiklusController extends Controller
     public function show(Siklus $siklus)
     {
         $cplData = $this->calculateCplData($siklus);
-        return view('siklus.show', compact('siklus', 'cplData'));
+    $perAngkatanData = $this->calculatePerAngkatanData($siklus);
+    $cplPerAngkatanData = $this->calculateCplPerAngkatan($siklus);
+    return view('siklus.show', compact('siklus', 'cplData', 'perAngkatanData', 'cplPerAngkatanData'));
     }
 
     /**
@@ -235,6 +237,124 @@ class SiklusController extends Controller
         }
 
         return $cplData;
+    }
+
+    /**
+     * Calculate average CPL achievement per angkatan (tahun) for the siklus
+     * Returns array: ['labels' => [...tahun...], 'values_100' => [...], 'values_4' => [...]]
+     */
+    private function calculatePerAngkatanData(Siklus $siklus)
+    {
+        // Get selected mata kuliah semester ids for this siklus
+        $selectedMksIds = SiklusCpl::where('siklus_id', $siklus->id)
+            ->pluck('mata_kuliah_semester_id')
+            ->toArray();
+
+        if (empty($selectedMksIds)) {
+            return ['labels' => [], 'values_100' => [], 'values_4' => []];
+        }
+
+        // Get MKS records for those ids
+        $mksList = MataKuliahSemester::whereIn('id', $selectedMksIds)
+            ->orderBy('tahun')
+            ->get();
+
+        // Group MKS ids by year
+        $byYear = [];
+        foreach ($mksList as $mks) {
+            $year = $mks->tahun;
+            if (!isset($byYear[$year])) $byYear[$year] = [];
+            $byYear[$year][] = $mks->id;
+        }
+
+        $labels = [];
+        $values100 = [];
+        $values4 = [];
+
+        foreach ($byYear as $year => $mksIds) {
+            // Average all NilaiCpl records for mks in this year
+            $avg = NilaiCpl::whereHas('nilai', function($q) use ($mksIds) {
+                $q->whereIn('mks_id', $mksIds);
+            })->avg('nilai_angka');
+
+            $avg = $avg !== null ? round($avg, 2) : 0;
+
+            $labels[] = (string)$year;
+            $values100[] = $avg;
+            $values4[] = ($avg / 100) * 4;
+        }
+
+        return [
+            'labels' => $labels,
+            'values_100' => $values100,
+            'values_4' => $values4,
+        ];
+    }
+
+    /**
+     * Calculate CPL averages per CPL grouped by angkatan (tahun) for the siklus
+     * Returns array: ['cpl_labels' => [...], 'years' => [...], 'datasets' => [year => ['data' => [...], 'data_4' => [...]]]]
+     */
+    private function calculateCplPerAngkatan(Siklus $siklus)
+    {
+        $cpls = $siklus->cpls();
+
+        // collect all years present in selected MKS for this siklus
+        $selectedMksIds = SiklusCpl::where('siklus_id', $siklus->id)
+            ->pluck('mata_kuliah_semester_id')
+            ->toArray();
+
+        $years = [];
+        if (!empty($selectedMksIds)) {
+            $mksList = MataKuliahSemester::whereIn('id', $selectedMksIds)->get();
+            foreach ($mksList as $mks) {
+                $years[] = $mks->tahun;
+            }
+        }
+
+        $years = array_values(array_unique($years));
+        sort($years);
+
+        $cplLabels = [];
+        $datasets = []; // keyed by year
+
+        foreach ($years as $year) {
+            $datasets[$year] = ['data' => [], 'data_4' => []];
+        }
+
+        foreach ($cpls as $cpl) {
+            $cplLabels[] = 'CPL ' . $cpl->nomor;
+
+            // for each year, compute average for this CPL considering only MKS selected under this CPL and that year
+            foreach ($years as $year) {
+                // get MKS for this CPL and year
+                $mksList = $siklus->getMataKuliahSemestersByCpl($cpl->id)->filter(function($mks) use ($year) {
+                    return $mks->tahun == $year;
+                });
+
+                $mksIds = $mksList->pluck('id')->toArray();
+
+                if (empty($mksIds)) {
+                    $avg = 0;
+                } else {
+                    $avg = NilaiCpl::where('cpl_id', $cpl->id)
+                        ->whereHas('nilai', function($q) use ($mksIds) {
+                            $q->whereIn('mks_id', $mksIds);
+                        })->avg('nilai_angka');
+
+                    $avg = $avg !== null ? round($avg, 2) : 0;
+                }
+
+                $datasets[$year]['data'][] = $avg;
+                $datasets[$year]['data_4'][] = ($avg / 100) * 4;
+            }
+        }
+
+        return [
+            'cpl_labels' => $cplLabels,
+            'years' => $years,
+            'datasets' => $datasets,
+        ];
     }
 
     /**

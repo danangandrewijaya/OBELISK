@@ -105,7 +105,7 @@
 			<div class="menu-item">
 				<!--begin:Menu link-->
 				<a class="menu-link {{ request()->routeIs('siklus.compare-cpl') ? 'active' : '' }}" href="{{ route('siklus.compare-cpl') }}">
-					<span class="menu-icon">{!! getIcon('chart-bar', 'fs-2') !!}</span>
+					<span class="menu-icon">{!! getIcon('chart-line-up', 'fs-2') !!}</span>
 					<span class="menu-title">Perbandingan Siklus</span>
 				</a>
 				<!--end:Menu link-->
