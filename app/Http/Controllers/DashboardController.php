@@ -14,6 +14,11 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // If user hasn't chosen an active role yet, redirect to choose-role page
+        if (! session()->has('active_role')) {
+            return redirect()->route('auth.choose-role');
+        }
+
         addVendors(['amcharts', 'amcharts-maps', 'amcharts-stock']);
         return view('pages/dashboards.index');
     }

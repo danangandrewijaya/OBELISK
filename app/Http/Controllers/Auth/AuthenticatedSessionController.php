@@ -10,6 +10,7 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -44,17 +45,36 @@ class AuthenticatedSessionController extends Controller
         ]);
 
         $roles = $user->roles->pluck('name');
-        // dd($roles); // Debugging line, remove in production
         if ($roles->count() === 1) {
             // Jika hanya satu role, set ke session dan redirect sesuai role
             $role = $roles->first();
             session(['active_role' => $role]);
-            if($role === Constants::ROLE_DOSEN) {
-                $nip = auth()->user()->nip;
-                $user = Dosen::where('nip', $nip)->first();
-                $dosen = Dosen::where('id', $user->id)->first();
-                session(['dosen_id' => $dosen->id]);
-                session(['nip' => $nip]);
+            // store prodi_id from user if available
+            // Prefer prodi_id from role assignment pivot (model_has_roles) if present
+            $pivot = DB::table(config('permission.table_names.model_has_roles'))
+                ->where('model_type', get_class($user))
+                ->where('model_id', $user->getKey())
+                ->where('role_id', DB::table(config('permission.table_names.roles'))->where('name', $role)->value('id'))
+                ->first();
+
+            if ($pivot && isset($pivot->prodi_id) && $pivot->prodi_id) {
+                session(['prodi_id' => $pivot->prodi_id]);
+            } elseif (isset($user->prodi_id) && $user->prodi_id) {
+                // fallback to user's prodi_id if pivot doesn't have it
+                session(['prodi_id' => $user->prodi_id]);
+            }
+
+            if ($role === Constants::ROLE_DOSEN) {
+                $nip = $user->nip;
+                $dosen = Dosen::where('nip', $nip)->first();
+                if ($dosen) {
+                    session(['dosen_id' => $dosen->id]);
+                    session(['nip' => $nip]);
+                    // if dosen has a prodi relation/column, prefer that
+                    if (isset($dosen->prodi_id) && $dosen->prodi_id) {
+                        session(['prodi_id' => $dosen->prodi_id]);
+                    }
+                }
             }
                 return redirect()->intended(RouteServiceProvider::HOME);
         } elseif ($roles->count() > 1) {

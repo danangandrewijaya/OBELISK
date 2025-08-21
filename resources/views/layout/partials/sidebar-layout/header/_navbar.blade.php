@@ -1,7 +1,26 @@
 <!--begin::Navbar-->
 <div class="app-navbar flex-shrink-0">
     <!--begin::Search-->
-    <div class="app-navbar-item align-items-stretch ms-1 ms-md-3">
+    <div class="app-navbar-item align-items-stretch ms-1 ms-md-3 d-flex align-items-center">
+        @php
+            $activeRole = session('active_role');
+            $prodiName = null;
+            if(session('prodi_id')){
+                $prodi = \App\Models\Prodi::find(session('prodi_id'));
+                $prodiName = $prodi?->nama;
+            }
+        @endphp
+
+        {{-- role badge on the left of search (visible on md+) --}}
+        @if($activeRole)
+            <div class="d-none d-md-flex align-items-center me-3">
+                <span class="badge bg-primary text-white text-uppercase fw-bold py-2 px-3 me-2">{{ $activeRole }}</span>
+                @if($prodiName)
+                    <span class="text-muted small">{{ $prodiName }}</span>
+                @endif
+            </div>
+        @endif
+
         @include(config('settings.KT_THEME_LAYOUT_DIR').'/partials/sidebar-layout/search/_dropdown')
     </div>
     <!--end::Search-->

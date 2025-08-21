@@ -28,6 +28,14 @@
                     }
                 @endphp
                 <a href="#" class="fw-semibold text-muted text-hover-primary fs-7">{{ $email }}</a>
+                @if(session('prodi_id'))
+                    @php
+                        $prodi = \App\Models\Prodi::find(session('prodi_id'));
+                    @endphp
+                    @if($prodi)
+                        <div class="text-muted small">{{ $prodi->nama }}</div>
+                    @endif
+                @endif
             </div>
             <!--end::Username-->
         </div>

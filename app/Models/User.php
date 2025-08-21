@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\Prodi;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -26,6 +27,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'last_login_at',
         'last_login_ip',
         'profile_photo_path',
+    'prodi_id',
     ];
 
     /**
@@ -46,7 +48,13 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'last_login_at' => 'datetime',
+        'prodi_id' => 'integer',
     ];
+
+    public function prodi()
+    {
+        return $this->belongsTo(Prodi::class, 'prodi_id');
+    }
 
     public function getProfilePhotoUrlAttribute()
     {
