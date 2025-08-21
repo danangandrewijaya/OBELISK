@@ -62,11 +62,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     /*
      * Siklus Routes
      */
-    // Replace the resource route with explicit route definitions
-    // Route::resource('siklus', \App\Http\Controllers\SiklusController::class);
     Route::get('siklus', [\App\Http\Controllers\SiklusController::class, 'index'])->name('siklus.index');
     Route::get('siklus/create', [\App\Http\Controllers\SiklusController::class, 'create'])->name('siklus.create');
     Route::post('siklus', [\App\Http\Controllers\SiklusController::class, 'store'])->name('siklus.store');
+    Route::get('siklus/compare-cpl', [\App\Http\Controllers\SiklusController::class, 'compareCPL'])->name('siklus.compare-cpl');
+    Route::get('siklus/compare-cpl/data', [\App\Http\Controllers\SiklusController::class, 'getCompareCPLData'])->name('siklus.compare-cpl.data');
     Route::get('siklus/{siklus}', [\App\Http\Controllers\SiklusController::class, 'show'])->name('siklus.show');
     Route::get('siklus/{siklus}/edit', [\App\Http\Controllers\SiklusController::class, 'edit'])->name('siklus.edit');
     Route::put('siklus/{siklus}', [\App\Http\Controllers\SiklusController::class, 'update'])->name('siklus.update');

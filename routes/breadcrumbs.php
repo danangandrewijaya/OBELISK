@@ -28,6 +28,12 @@ Breadcrumbs::for('user-management.index', function (BreadcrumbTrail $trail) {
     $trail->push('User Management', route('user-management.users.index'));
 });
 
+// Home > Dashboard > Perbandingan CPL
+Breadcrumbs::for('siklus.compare-cpl', function (BreadcrumbTrail $trail) {
+    $trail->parent('dashboard');
+    $trail->push('Perbandingan CPL', route('siklus.compare-cpl'));
+});
+
 // Home > Dashboard > User Management > Users
 Breadcrumbs::for('user-management.users.index', function (BreadcrumbTrail $trail) {
     $trail->parent('user-management.index');

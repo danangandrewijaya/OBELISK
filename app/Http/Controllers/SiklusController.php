@@ -236,4 +236,88 @@ class SiklusController extends Controller
 
         return $cplData;
     }
+
+    /**
+     * Show the CPL comparison page
+     */
+    public function compareCPL()
+    {
+        $siklusList = Siklus::orderBy('tahun_mulai', 'desc')
+            ->get();
+
+        return view('siklus.compare-cpl', compact('siklusList'));
+    }
+
+    /**
+     * Get CPL comparison data for the chart
+     */
+    public function getCompareCPLData(Request $request)
+    {
+        $siklusIds = $request->input('siklus_ids');
+
+        // Validate input
+        if (empty($siklusIds) || !is_array($siklusIds)) {
+            return response()->json(['error' => 'Parameter siklus_ids diperlukan'], 400);
+        }
+
+        // Validate maximum 4 siklus
+        if (count($siklusIds) > 4) {
+            return response()->json(['error' => 'Maksimal 4 siklus yang dapat dibandingkan'], 400);
+        }
+
+        // Collect all CPL 'nomor' labels across selected siklus' kurikulums
+        $allNomors = [];
+        $siklusObjs = [];
+        foreach ($siklusIds as $siklusId) {
+            $siklus = Siklus::find($siklusId);
+            if (!$siklus) continue;
+            $siklusObjs[] = $siklus;
+            $cpls = Cpl::where('kurikulum_id', $siklus->kurikulum_id)->get();
+            foreach ($cpls as $c) {
+                // normalize to string
+                $allNomors[] = (string) $c->nomor;
+            }
+        }
+
+        $allNomors = array_values(array_unique($allNomors, SORT_REGULAR));
+        // sort numerically if possible
+        usort($allNomors, function($a, $b) {
+            if (is_numeric($a) && is_numeric($b)) return $a - $b;
+            return strcmp($a, $b);
+        });
+
+        // Prepare datasets
+        $datasets = [];
+        $colors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#8E44AD', '#2ECC71']; // Colors for different siklus
+
+        foreach ($siklusObjs as $index => $siklus) {
+            $cplData = $this->calculateCplData($siklus);
+
+            // Map nomor => rata_rata for this siklus
+            $nomorMap = [];
+            foreach ($cplData as $entry) {
+                if (!empty($entry['cpl']) && isset($entry['cpl']->nomor)) {
+                    $nomorMap[(string)$entry['cpl']->nomor] = $entry['rata_rata'];
+                }
+            }
+
+            $data = [];
+            foreach ($allNomors as $nomor) {
+                $data[] = isset($nomorMap[$nomor]) ? $nomorMap[$nomor] : 0;
+            }
+
+            $datasets[] = [
+                'label' => $siklus->tahun_mulai . ' - ' . $siklus->nama,
+                'data' => $data,
+                'backgroundColor' => $colors[$index % count($colors)],
+                'borderColor' => $colors[$index % count($colors)],
+                'borderWidth' => 1
+            ];
+        }
+
+        return response()->json([
+            'labels' => $allNomors,
+            'datasets' => $datasets
+        ]);
+    }
 }
