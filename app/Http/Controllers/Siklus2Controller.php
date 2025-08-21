@@ -18,8 +18,15 @@ class Siklus2Controller extends Controller
      */
     public function index()
     {
-        $siklus = Siklus2::with('kurikulum')->get();
-        return view('siklus2.index', compact('siklus'));
+        $prodiId = session('prodi_id');
+        $siklusQuery = Siklus2::with('kurikulum');
+        if ($prodiId) {
+            $siklusQuery->whereHas('kurikulum', function ($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+        }
+        $siklus = $siklusQuery->get();
+        return view('siklus2.index', compact('siklus', 'prodiId'));
     }
 
     /**
@@ -27,8 +34,11 @@ class Siklus2Controller extends Controller
      */
     public function create()
     {
-        $kurikulums = Kurikulum::all();
-        return view('siklus2.create', compact('kurikulums'));
+    $prodiId = session('prodi_id');
+    $kurikulumsQuery = Kurikulum::query();
+    if ($prodiId) $kurikulumsQuery->where('prodi_id', $prodiId);
+    $kurikulums = $kurikulumsQuery->get();
+    return view('siklus2.create', compact('kurikulums'));
     }
 
     /**
@@ -63,8 +73,11 @@ class Siklus2Controller extends Controller
      */
     public function edit(Siklus2 $siklus)
     {
-        $kurikulums = Kurikulum::all();
-        return view('siklus2.edit', compact('siklus', 'kurikulums'));
+    $prodiId = session('prodi_id');
+    $kurikulumsQuery = Kurikulum::query();
+    if ($prodiId) $kurikulumsQuery->where('prodi_id', $prodiId);
+    $kurikulums = $kurikulumsQuery->get();
+    return view('siklus2.edit', compact('siklus', 'kurikulums'));
     }
 
     /**

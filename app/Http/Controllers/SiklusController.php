@@ -19,8 +19,16 @@ class SiklusController extends Controller
      */
     public function index()
     {
-        $siklus = Siklus::with('kurikulum')->get();
-        return view('siklus.index', compact('siklus'));
+        $prodiId = session('prodi_id');
+        $siklusQuery = Siklus::with('kurikulum');
+        if ($prodiId) {
+            $siklusQuery->whereHas('kurikulum', function ($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+        }
+        $siklus = $siklusQuery->get();
+
+        return view('siklus.index', compact('siklus', 'prodiId'));
     }
 
     /**
@@ -28,7 +36,10 @@ class SiklusController extends Controller
      */
     public function create()
     {
-        $kurikulums = Kurikulum::all();
+    $prodiId = session('prodi_id');
+    $kurikulumsQuery = Kurikulum::query();
+    if ($prodiId) $kurikulumsQuery->where('prodi_id', $prodiId);
+    $kurikulums = $kurikulumsQuery->get();
         return view('siklus.create', compact('kurikulums'));
     }
 
@@ -66,8 +77,11 @@ class SiklusController extends Controller
      */
     public function edit(Siklus $siklus)
     {
-        $kurikulums = Kurikulum::all();
-        return view('siklus.edit', compact('siklus', 'kurikulums'));
+    $prodiId = session('prodi_id');
+    $kurikulumsQuery = Kurikulum::query();
+    if ($prodiId) $kurikulumsQuery->where('prodi_id', $prodiId);
+    $kurikulums = $kurikulumsQuery->get();
+    return view('siklus.edit', compact('siklus', 'kurikulums'));
     }
 
     /**
@@ -362,10 +376,16 @@ class SiklusController extends Controller
      */
     public function compareCPL()
     {
-        $siklusList = Siklus::orderBy('tahun_mulai', 'desc')
-            ->get();
+        $prodiId = session('prodi_id');
+        $siklusQuery = Siklus::orderBy('tahun_mulai', 'desc');
+        if ($prodiId) {
+            $siklusQuery->whereHas('kurikulum', function ($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+        }
+        $siklusList = $siklusQuery->get();
 
-        return view('siklus.compare-cpl', compact('siklusList'));
+        return view('siklus.compare-cpl', compact('siklusList', 'prodiId'));
     }
 
     /**
@@ -388,9 +408,14 @@ class SiklusController extends Controller
         // Collect all CPL 'nomor' labels across selected siklus' kurikulums
         $allNomors = [];
         $siklusObjs = [];
+        $prodiId = session('prodi_id');
         foreach ($siklusIds as $siklusId) {
             $siklus = Siklus::find($siklusId);
             if (!$siklus) continue;
+            if ($prodiId) {
+                // ensure the siklus' kurikulum belongs to prodi
+                if (!isset($siklus->kurikulum) || $siklus->kurikulum->prodi_id != $prodiId) continue;
+            }
             $siklusObjs[] = $siklus;
             $cpls = Cpl::where('kurikulum_id', $siklus->kurikulum_id)->get();
             foreach ($cpls as $c) {

@@ -49,7 +49,14 @@ class ImportLogDataTable extends DataTable
 
     public function query(ImportLog $model): QueryBuilder
     {
-        return $model->newQuery()->with('user');
+        $query = $model->newQuery()->with(['user', 'mataKuliahSemester']);
+        $prodiId = session('prodi_id');
+        if ($prodiId) {
+            $query->whereHas('mataKuliahSemester.mkk.kurikulum', function ($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+        }
+        return $query;
     }
 
     public function html(): HtmlBuilder

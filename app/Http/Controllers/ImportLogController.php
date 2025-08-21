@@ -17,9 +17,20 @@ class ImportLogController extends Controller
      */
     public function index(ImportLogDataTable $dataTable)
     {
-        // Get unique actions and statuses for filters in view
-        $actions = ImportLog::distinct()->pluck('action');
-        $statuses = ImportLog::distinct()->pluck('status');
+        // Get unique actions and statuses for filters in view, scoped by prodi if set
+        $prodiId = session('prodi_id');
+        $actionsQuery = ImportLog::distinct()->select('action');
+        $statusesQuery = ImportLog::distinct()->select('status');
+        if ($prodiId) {
+            $actionsQuery->whereHas('mataKuliahSemester.mkk.kurikulum', function ($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+            $statusesQuery->whereHas('mataKuliahSemester.mkk.kurikulum', function ($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+        }
+        $actions = $actionsQuery->pluck('action');
+        $statuses = $statusesQuery->pluck('status');
 
         return $dataTable->render('import-log.index', compact('actions', 'statuses'));
     }
