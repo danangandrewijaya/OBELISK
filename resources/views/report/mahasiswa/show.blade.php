@@ -28,7 +28,7 @@
                 <div class="col-md-3">
                     <div class="fw-bold">Kurikulum</div>
                     <div>{{ $mahasiswa->kurikulum->nama }}</div>
-                    @if(session('active_role') === 'admin')
+                    @if(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI)
                     <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editKurikulumModal">
                         Edit Kurikulum
                     </button>
@@ -192,7 +192,7 @@
                                         {{ $nilai->outcome }} <i class="bi bi-info-circle-fill text-primary fs-5"></i>
                                     </td>
                                     <td>
-                                        @if(session('active_role') === 'admin')
+                                        @if(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI)
                                         <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteNilaiModal" data-nilai-id="{{ $nilai->id }}">
                                             Hapus
                                         </button>

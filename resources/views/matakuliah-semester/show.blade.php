@@ -466,7 +466,7 @@
                     // Setup keterangan form if needed
 
                     const isDosen = @json(session('active_role') === App\Core\Constants::ROLE_DOSEN);
-                    const isAdmin = @json(session('active_role') === 'admin');
+                    const isAdmin = @json(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI);
                     if (isRemidiCpmk && (isAdmin || isDosen)) {
                         document.getElementById('keterangan-nilai-id').value = nilaiId;
 

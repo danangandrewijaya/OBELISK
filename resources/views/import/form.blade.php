@@ -20,7 +20,7 @@
                     <input type="file" name="excel_file" id="excel_file" accept=".xlsx,.xls" class="form-control form-control-solid">
                 </div>
 
-                @if($role === 'admin')
+                @if($role === App\Core\Constants::ROLE_ADMIN_PRODI)
                 <div class="mb-5">
                     <label class="form-label required" for="pengampu_ids">Pilih Pengampu</label>
                     <select name="pengampu_ids[]" id="pengampu_ids" class="form-select form-select-solid" multiple="multiple" data-control="select2" data-placeholder="Pilih pengampu...">
