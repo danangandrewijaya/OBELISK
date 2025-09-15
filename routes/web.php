@@ -93,6 +93,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('master')->name('master.')->group(function () {
         Route::resource('matakuliah-semester', \App\Http\Controllers\MataKuliahSemesterController::class);
     });
+
+    // Standalone Mata Kuliah Semester import (separate from ImportController)
+    Route::get('/matkul-smt/import', [\App\Http\Controllers\MataKuliahSemesterImportController::class, 'showForm'])->name('matkul-smt.import.form');
+    Route::post('/matkul-smt/import/preview', [\App\Http\Controllers\MataKuliahSemesterImportController::class, 'preview'])->name('matkul-smt.import.preview');
+    Route::post('/matkul-smt/import/process', [\App\Http\Controllers\MataKuliahSemesterImportController::class, 'process'])->name('matkul-smt.import.process');
 });
 
 Route::get('/error', function () {
