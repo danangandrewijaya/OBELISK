@@ -38,12 +38,12 @@ class MataKuliahSemesterBarisImport implements ToCollection
                 'kuota' => $row[5],
                 'peserta' => $row[6],
                 'dibuka' => $row[7],
-                'pengampu1' => $row[8],
-                'pengampu2' => $row[9],
-                'pengampu3' => $row[10],
-                'nip1' => $row[11],
-                'nip2' => $row[12],
-                'nip3' => $row[13],
+                'pengampu1' => isset($row[8]) ? $row[8] : null,
+                'pengampu2' => isset($row[9]) ? $row[9] : null,
+                'pengampu3' => isset($row[10]) ? $row[10] : null,
+                'nip1' => isset($row[11]) ? $row[11] : null,
+                'nip2' => isset($row[12]) ? $row[12] : null,
+                'nip3' => isset($row[13]) ? $row[13] : null,
             ];
         }
 
