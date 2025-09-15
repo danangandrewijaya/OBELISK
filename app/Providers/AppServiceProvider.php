@@ -7,6 +7,7 @@ use App\Core\KTBootstrap;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Database\Schema\Builder;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
             Livewire::setUpdateRoute(function ($handle) {
                 return Route::post('/starterkit/metronic/laravel/livewire/update', $handle);
             });
+
+            URL::forceScheme('https');
         }
     }
 }
