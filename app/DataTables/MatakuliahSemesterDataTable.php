@@ -17,7 +17,7 @@ class MatakuliahSemesterDataTable extends DataTable
     {
         return (new EloquentDataTable($query))
             ->addColumn('action', function ($row) {
-                return view('matakuliah-semester.action', compact('row'));
+                return view('master.matakuliah-semester.action', compact('row'));
                 // for development purposes
                 // return view('report.matakuliah-semester.action', compact('row'));
             })

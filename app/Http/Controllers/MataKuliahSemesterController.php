@@ -49,7 +49,7 @@ class MataKuliahSemesterController extends Controller
         }
         $semesters = $semestersQuery->distinct()->pluck('semester')->sort()->values();
 
-        return $dataTable->render('matakuliah-semester.index', compact('kurikulums', 'years', 'semesters'));
+        return $dataTable->render('master.matakuliah-semester.index', compact('kurikulums', 'years', 'semesters'));
     }
 
     /**
@@ -71,7 +71,7 @@ class MataKuliahSemesterController extends Controller
         $tahunOptions = range(date('Y') - 5, date('Y') + 1);
         $semesterOptions = [1, 2];
 
-        return view('matakuliah-semester.create', compact('matakuliahs', 'dosens', 'tahunOptions', 'semesterOptions'));
+        return view('master.matakuliah-semester.create', compact('matakuliahs', 'dosens', 'tahunOptions', 'semesterOptions'));
     }
 
     /**
@@ -186,7 +186,7 @@ class MataKuliahSemesterController extends Controller
             'pengampuDosens'
         ]);
 
-        return view('matakuliah-semester.show', compact('matakuliahSemester'));
+        return view('master.matakuliah-semester.show', compact('matakuliahSemester'));
     }
 
     /**
@@ -211,7 +211,7 @@ class MataKuliahSemesterController extends Controller
 
         $selectedPengampuIds = $matakuliahSemester->pengampus->pluck('dosen_id')->toArray();
 
-        return view('matakuliah-semester.edit', compact('matakuliahSemester', 'matakuliahs', 'dosens', 'tahunOptions', 'semesterOptions', 'selectedPengampuIds'));
+        return view('master.matakuliah-semester.edit', compact('matakuliahSemester', 'matakuliahs', 'dosens', 'tahunOptions', 'semesterOptions', 'selectedPengampuIds'));
     }
 
     /**

@@ -33,7 +33,7 @@ class MataKuliahKurikulumController extends Controller
             $q->from('mst_kurikulum')->where('prodi_id', $prodiId);
         });
         $makulKurikulums = $query->orderBy('semester')->orderBy('kode')->paginate($perPage)->withQueryString();
-        return view('master.makul_kurikulum.index', compact('makulKurikulums', 'kurikulums', 'kurikulumId', 'search'));
+        return view('master.matakuliah-kurikulum.index', compact('makulKurikulums', 'kurikulums', 'kurikulumId', 'search'));
     }
 
     public function create(Request $request)
@@ -41,7 +41,7 @@ class MataKuliahKurikulumController extends Controller
     $prodiId = session('prodi_id');
     $kurikulums = Kurikulum::query()->from('mst_kurikulum')->where('prodi_id', $prodiId)->get();
     $kurikulumId = $request->get('kurikulum_id');
-    return view('master.makul_kurikulum.create', compact('kurikulums', 'kurikulumId'));
+    return view('master.matakuliah-kurikulum.create', compact('kurikulums', 'kurikulumId'));
     }
 
     public function store(Request $request)
@@ -62,7 +62,7 @@ class MataKuliahKurikulumController extends Controller
     {
     $prodiId = session('prodi_id');
     $kurikulums = Kurikulum::query()->from('mst_kurikulum')->where('prodi_id', $prodiId)->get();
-    return view('master.makul_kurikulum.edit', compact('makulKurikulum', 'kurikulums'));
+    return view('master.matakuliah-kurikulum.edit', compact('makulKurikulum', 'kurikulums'));
     }
 
     public function update(Request $request, MataKuliahKurikulum $makulKurikulum)
