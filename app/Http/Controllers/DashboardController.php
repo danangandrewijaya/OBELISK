@@ -26,7 +26,18 @@ class DashboardController extends Controller
     public function getStats(Request $request): JsonResponse
     {
     // Filter by active prodi if set in session
-    $prodiId = session('prodi_id');
+
+        $prodiId = session('prodi_id');
+
+        // Get kurikulum filter parameter or set 'all' as default
+        $kurikulum = $request->input('kurikulum', 'all');
+
+        // Get all kurikulum for filter dropdown
+        $kurikulumOptionsQuery = \App\Models\Kurikulum::query();
+        if ($prodiId) {
+            $kurikulumOptionsQuery->where('prodi_id', $prodiId);
+        }
+        $kurikulumOptions = $kurikulumOptionsQuery->orderBy('nama')->get(['id', 'nama']);
 
         // Get semester filter parameter or set 'all' as default
         $semester = $request->input('semester', 'all');
@@ -37,11 +48,11 @@ class DashboardController extends Controller
             ->orderBy('tahun', 'desc')
             ->orderBy('semester', 'desc');
 
-        if ($prodiId) {
-            // scope by prodi through mkk->kurikulum
-            $semesterOptionsQuery->whereHas('mkk', function ($q) use ($prodiId) {
-                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
-                    $q2->where('prodi_id', $prodiId);
+        if ($prodiId || $kurikulum !== 'all') {
+            $semesterOptionsQuery->whereHas('mkk', function ($q) use ($prodiId, $kurikulum) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId, $kurikulum) {
+                    if ($prodiId) $q2->where('prodi_id', $prodiId);
+                    if ($kurikulum !== 'all') $q2->where('id', $kurikulum);
                 });
             });
         }
@@ -58,10 +69,11 @@ class DashboardController extends Controller
             ->orderBy('tahun', 'desc')
             ->orderBy('semester', 'desc');
 
-        if ($prodiId) {
-            $latestSemesterQuery->whereHas('mkk', function ($q) use ($prodiId) {
-                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
-                    $q2->where('prodi_id', $prodiId);
+        if ($prodiId || $kurikulum !== 'all') {
+            $latestSemesterQuery->whereHas('mkk', function ($q) use ($prodiId, $kurikulum) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId, $kurikulum) {
+                    if ($prodiId) $q2->where('prodi_id', $prodiId);
+                    if ($kurikulum !== 'all') $q2->where('id', $kurikulum);
                 });
             });
         }
@@ -74,10 +86,11 @@ class DashboardController extends Controller
         // Initialize query builder
         $mksQuery = MataKuliahSemester::query();
 
-        if ($prodiId) {
-            $mksQuery->whereHas('mkk', function ($q) use ($prodiId) {
-                $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
-                    $q2->where('prodi_id', $prodiId);
+        if ($prodiId || $kurikulum !== 'all') {
+            $mksQuery->whereHas('mkk', function ($q) use ($prodiId, $kurikulum) {
+                $q->whereHas('kurikulum', function ($q2) use ($prodiId, $kurikulum) {
+                    if ($prodiId) $q2->where('prodi_id', $prodiId);
+                    if ($kurikulum !== 'all') $q2->where('id', $kurikulum);
                 });
             });
         }
@@ -98,34 +111,34 @@ class DashboardController extends Controller
     $mksAktifCount = $mksAktifQuery->whereHas('nilai')->count();
 
         // Get CPMK count for selected semester(s)
-        $cpmkCount = Cpmk::whereHas('mks', function ($query) use ($semester, $prodiId) {
+        $cpmkCount = Cpmk::whereHas('mks', function ($query) use ($semester, $prodiId, $kurikulum) {
             if ($semester !== 'all' && strpos($semester, '-') !== false) {
                 list($tahun, $semesterNum) = explode('-', $semester);
                 $query->where('tahun', $tahun)
                       ->where('semester', $semesterNum);
             }
-
-            if ($prodiId) {
-                $query->whereHas('mkk', function ($q) use ($prodiId) {
-                    $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
-                        $q2->where('prodi_id', $prodiId);
+            if ($prodiId || $kurikulum !== 'all') {
+                $query->whereHas('mkk', function ($q) use ($prodiId, $kurikulum) {
+                    $q->whereHas('kurikulum', function ($q2) use ($prodiId, $kurikulum) {
+                        if ($prodiId) $q2->where('prodi_id', $prodiId);
+                        if ($kurikulum !== 'all') $q2->where('id', $kurikulum);
                     });
                 });
             }
         })->count();
 
         // Get CPL count for selected semester(s)
-        $cplCount = Cpl::whereHas('cpmks.mks', function ($query) use ($semester, $prodiId) {
+        $cplCount = Cpl::whereHas('cpmks.mks', function ($query) use ($semester, $prodiId, $kurikulum) {
             if ($semester !== 'all' && strpos($semester, '-') !== false) {
                 list($tahun, $semesterNum) = explode('-', $semester);
                 $query->where('tahun', $tahun)
                       ->where('semester', $semesterNum);
             }
-
-            if ($prodiId) {
-                $query->whereHas('mkk', function ($q) use ($prodiId) {
-                    $q->whereHas('kurikulum', function ($q2) use ($prodiId) {
-                        $q2->where('prodi_id', $prodiId);
+            if ($prodiId || $kurikulum !== 'all') {
+                $query->whereHas('mkk', function ($q) use ($prodiId, $kurikulum) {
+                    $q->whereHas('kurikulum', function ($q2) use ($prodiId, $kurikulum) {
+                        if ($prodiId) $q2->where('prodi_id', $prodiId);
+                        if ($kurikulum !== 'all') $q2->where('id', $kurikulum);
                     });
                 });
             }
@@ -144,10 +157,10 @@ class DashboardController extends Controller
                                      ->where('mst_mata_kuliah_semester.semester', $semesterNum);
         }
 
-        if ($prodiId) {
-            // mst_cpl -> kurikulum -> prodi
-            $cpmkCplDistributionQuery->leftJoin('mst_kurikulum', 'mst_cpl.kurikulum_id', '=', 'mst_kurikulum.id')
-                ->where('mst_kurikulum.prodi_id', $prodiId);
+        if ($prodiId || $kurikulum !== 'all') {
+            $cpmkCplDistributionQuery->leftJoin('mst_kurikulum', 'mst_cpl.kurikulum_id', '=', 'mst_kurikulum.id');
+            if ($prodiId) $cpmkCplDistributionQuery->where('mst_kurikulum.prodi_id', $prodiId);
+            if ($kurikulum !== 'all') $cpmkCplDistributionQuery->where('mst_kurikulum.id', $kurikulum);
         }
 
         $cpmkCplDistribution = $cpmkCplDistributionQuery->groupBy('mst_cpl.nomor')
@@ -166,10 +179,10 @@ class DashboardController extends Controller
                                        ->where('mst_mata_kuliah_semester.semester', $semesterNum);
         }
 
-        if ($prodiId) {
-            // mst_mata_kuliah_kurikulum -> kurikulum -> prodi
-            $curriculumDistributionQuery->leftJoin('mst_kurikulum', 'mst_mata_kuliah_kurikulum.kurikulum_id', '=', 'mst_kurikulum.id')
-                ->where('mst_kurikulum.prodi_id', $prodiId);
+        if ($prodiId || $kurikulum !== 'all') {
+            $curriculumDistributionQuery->leftJoin('mst_kurikulum', 'mst_mata_kuliah_kurikulum.kurikulum_id', '=', 'mst_kurikulum.id');
+            if ($prodiId) $curriculumDistributionQuery->where('mst_kurikulum.prodi_id', $prodiId);
+            if ($kurikulum !== 'all') $curriculumDistributionQuery->where('mst_kurikulum.id', $kurikulum);
         }
 
         $curriculumDistributionRaw = $curriculumDistributionQuery->groupBy('mst_mata_kuliah_semester.tahun', 'mst_mata_kuliah_semester.semester')
@@ -188,9 +201,10 @@ class DashboardController extends Controller
             $curriculumDistributionAktifQuery->where('mst_mata_kuliah_semester.tahun', $tahun)
                                        ->where('mst_mata_kuliah_semester.semester', $semesterNum);
         }
-        if ($prodiId) {
-            $curriculumDistributionAktifQuery->leftJoin('mst_kurikulum', 'mst_mata_kuliah_kurikulum.kurikulum_id', '=', 'mst_kurikulum.id')
-                ->where('mst_kurikulum.prodi_id', $prodiId);
+        if ($prodiId || $kurikulum !== 'all') {
+            $curriculumDistributionAktifQuery->leftJoin('mst_kurikulum', 'mst_mata_kuliah_kurikulum.kurikulum_id', '=', 'mst_kurikulum.id');
+            if ($prodiId) $curriculumDistributionAktifQuery->where('mst_kurikulum.prodi_id', $prodiId);
+            if ($kurikulum !== 'all') $curriculumDistributionAktifQuery->where('mst_kurikulum.id', $kurikulum);
         }
 
         $curriculumDistributionAktifRaw = $curriculumDistributionAktifQuery->groupBy('mst_mata_kuliah_semester.tahun', 'mst_mata_kuliah_semester.semester')
@@ -262,7 +276,33 @@ class DashboardController extends Controller
                 ];
             });
 
-        return response()->json([
+    // Get CPL per Kurikulum (CPMK distribution per CPL per Kurikulum)
+
+    $cpmkCplPerKurikulum = DB::table('mst_cpl')
+        ->select('mst_kurikulum.nama as kurikulum', 'mst_cpl.nomor as cpl', DB::raw('COUNT(DISTINCT trx_cpmk_cpl.cpmk_id) as count'))
+        ->leftJoin('trx_cpmk_cpl', 'mst_cpl.id', '=', 'trx_cpmk_cpl.cpl_id')
+        ->leftJoin('mst_cpmk', 'trx_cpmk_cpl.cpmk_id', '=', 'mst_cpmk.id')
+        ->leftJoin('mst_mata_kuliah_semester', 'mst_cpmk.mks_id', '=', 'mst_mata_kuliah_semester.id')
+        ->leftJoin('mst_kurikulum', 'mst_cpl.kurikulum_id', '=', 'mst_kurikulum.id');
+
+    if ($semester !== 'all' && strpos($semester, '-') !== false) {
+        list($tahun, $semesterNum) = explode('-', $semester);
+        $cpmkCplPerKurikulum->where('mst_cpmk.id', '!=', null)
+            ->where('mst_mata_kuliah_semester.tahun', $tahun)
+            ->where('mst_mata_kuliah_semester.semester', $semesterNum);
+    }
+    if ($prodiId) {
+        $cpmkCplPerKurikulum->where('mst_kurikulum.prodi_id', $prodiId);
+    }
+
+    $cpmkCplPerKurikulum = $cpmkCplPerKurikulum
+        ->groupBy('mst_kurikulum.nama', 'mst_cpl.nomor')
+        ->orderBy('mst_kurikulum.nama')
+        ->orderBy('mst_cpl.nomor')
+        ->get();
+
+    return response()->json([
+        'kurikulum_options' => $kurikulumOptions,
             'tahun_aktif' => $tahunAktif,
             'semester_aktif' => $semesterAktif,
             'semester_options' => $semesterOptions,
@@ -272,7 +312,8 @@ class DashboardController extends Controller
             'mks_aktif_count' => $mksAktifCount,
             'cpmk_cpl_distribution' => $cpmkCplDistribution,
             'curriculum_distribution' => $curriculumDistribution,
-            'mks_list' => $mksList
+            'mks_list' => $mksList,
+            'cpmk_cpl_per_kurikulum' => $cpmkCplPerKurikulum
         ]);
     }
 }

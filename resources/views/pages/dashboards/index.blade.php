@@ -25,7 +25,10 @@
                             </div>
                         </div>
                         <div class="card-toolbar">
-                            <div class="d-flex align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <select id="kurikulum-filter" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="Pilih Kurikulum">
+                                    <option value="all" selected>Semua Kurikulum</option>
+                                </select>
                                 <select id="semester-filter" class="form-select form-select-sm form-select-solid" data-control="select2" data-placeholder="Pilih Semester">
                                     <option value="all" selected>Semua Semester</option>
                                 </select>
@@ -215,8 +218,10 @@
         let cpmkCplChartInstance = null;
 
         // Initialize dashboard
+
         Promise.all([
             getElement('semester-aktif'),
+            getElement('kurikulum-filter'),
             getElement('semester-filter'),
             getElement('cpmk-count'),
             getElement('cpl-count'),
@@ -224,9 +229,10 @@
             getElement('mks-aktif-count'),
             getElement('curriculum_distribution_chart'),
             getElement('cpmk_cpl_chart')
-        ]).then(([semesterLabel, semesterFilter, cpmk, cpl, mks, mksAktif, curriculumChart, cpmkCplChart]) => {
+        ]).then(([semesterLabel, kurikulumFilter, semesterFilter, cpmk, cpl, mks, mksAktif, curriculumChart, cpmkCplChart]) => {
             const elements = {
                 semesterLabel,
+                kurikulumFilter,
                 semesterFilter,
                 cpmk,
                 cpl,
@@ -239,21 +245,32 @@
             // Load initial dashboard data
             loadDashboardData(elements);
 
+            // Initialize the kurikulum filter with select2
+            $(elements.kurikulumFilter).select2({
+                minimumResultsForSearch: 5
+            });
             // Initialize the semester filter with select2
             $(elements.semesterFilter).select2({
                 minimumResultsForSearch: 5
             });
 
+            // Set up change event for the kurikulum filter
+            $(elements.kurikulumFilter).on('change', function() {
+                loadDashboardData(elements);
+            });
             // Set up change event for the semester filter
             $(elements.semesterFilter).on('change', function() {
-                loadDashboardData(elements, this.value);
+                loadDashboardData(elements);
             });
         }).catch(error => {
             console.error('Error initializing dashboard:', error);
         });
 
         // Function to load dashboard data based on selected semester
-        function loadDashboardData(elements, semester = 'all') {
+        function loadDashboardData(elements) {
+            // Get selected kurikulum and semester
+            const selectedKurikulum = $(elements.kurikulumFilter).val() || 'all';
+            const selectedSemester = $(elements.semesterFilter).val() || 'all';
             // Show loading indication
             const loadingDiv = document.createElement('div');
             loadingDiv.className = 'position-absolute w-100 h-100 d-flex justify-content-center align-items-center bg-white bg-opacity-75';
@@ -263,11 +280,9 @@
             loadingDiv.style.zIndex = '100';
             document.querySelector('.app-container').appendChild(loadingDiv);
 
-            // Store current selection
-            const currentSemester = semester;
 
-            // Build URL with semester parameter and timestamp to prevent caching
-            const url = '/dashboard/stats' + (semester ? `?semester=${semester}&_=${new Date().getTime()}` : `?_=${new Date().getTime()}`);
+            // Build URL with kurikulum & semester parameter and timestamp to prevent caching
+            const url = `/dashboard/stats?kurikulum=${selectedKurikulum}&semester=${selectedSemester}&_=${new Date().getTime()}`;
 
             fetch(url)
                 .then(response => {
@@ -280,39 +295,34 @@
                     // Debugging output
                     console.log('Dashboard data received:', data);
 
+                    // Update kurikulum dropdown options if provided
+                    if (data.kurikulum_options && Array.isArray(data.kurikulum_options) && data.kurikulum_options.length > 0) {
+                        try {
+                            // Save current selection before emptying
+                            const selectedKurikulum = $(elements.kurikulumFilter).val();
+                            $(elements.kurikulumFilter).empty();
+                            $(elements.kurikulumFilter).append(new Option('Semua Kurikulum', 'all', false, selectedKurikulum === 'all'));
+                            data.kurikulum_options.forEach(option => {
+                                const isSelected = String(option.id) === String(selectedKurikulum);
+                                $(elements.kurikulumFilter).append(new Option(option.nama, option.id, false, isSelected));
+                            });
+                            $(elements.kurikulumFilter).val(selectedKurikulum || 'all').trigger('change.select2', { triggerChange: false });
+                        } catch (error) {
+                            console.error('Error updating kurikulum options:', error);
+                        }
+                    }
                     // Update semester dropdown options if provided
                     if (data.semester_options && Array.isArray(data.semester_options) && data.semester_options.length > 0) {
                         try {
-                            // Temporarily disable change event to prevent repeated calls
-                            $(elements.semesterFilter).off('change');
-
                             // Save current selection before emptying
-                            const selectedValue = $(elements.semesterFilter).val();
-
-                            // Clear and add all options
+                            const selectedSemester = $(elements.semesterFilter).val();
                             $(elements.semesterFilter).empty();
-
-                            // Add "All" option first
-                            $(elements.semesterFilter).append(new Option('Semua Semester', 'all', false, selectedValue === 'all'));
-
-                            // Add semester options
+                            $(elements.semesterFilter).append(new Option('Semua Semester', 'all', false, selectedSemester === 'all'));
                             data.semester_options.forEach(option => {
-                                const isSelected = option.id === selectedValue;
+                                const isSelected = option.id === selectedSemester;
                                 $(elements.semesterFilter).append(new Option(option.text, option.id, false, isSelected));
                             });
-
-                            // Restore select2 instance
-                            $(elements.semesterFilter).select2({
-                                minimumResultsForSearch: 5
-                            });
-
-                            // Reattach change event
-                            $(elements.semesterFilter).on('change', function() {
-                                loadDashboardData(elements, this.value);
-                            });
-
-                            // Ensure the correct value is selected
-                            $(elements.semesterFilter).val(currentSemester).trigger('change.select2', { triggerChange: false });
+                            $(elements.semesterFilter).val(selectedSemester || 'all').trigger('change.select2', { triggerChange: false });
                         } catch (error) {
                             console.error('Error updating semester options:', error);
                         }
