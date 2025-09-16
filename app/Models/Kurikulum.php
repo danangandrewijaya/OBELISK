@@ -15,4 +15,10 @@ class Kurikulum extends Model
         'nama',
         'prodi_id',
     ];
+
+    // Relasi ke CPL
+    public function cpls()
+    {
+        return $this->hasMany(\App\Models\Cpl::class, 'kurikulum_id');
+    }
 }

@@ -90,7 +90,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('siklus2/{siklus}/save-pi-selections', [\App\Http\Controllers\Siklus2Controller::class, 'savePiSelections'])->name('siklus2.save-pi-selections');
 
     // Master Mata Kuliah Semester - Changed from nested resource to simple resource with prefix and name
+
+    // Master Kurikulum CRUD
     Route::prefix('master')->name('master.')->group(function () {
+        Route::resource('kurikulum', \App\Http\Controllers\Master\KurikulumController::class);
         Route::resource('matakuliah-semester', \App\Http\Controllers\MataKuliahSemesterController::class);
     });
 
