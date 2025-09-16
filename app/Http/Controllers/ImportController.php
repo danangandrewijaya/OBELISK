@@ -88,6 +88,7 @@ class ImportController extends Controller
         $pengampus = $request->pengampu_ids ?? [];
 
         try {
+            $importStart = microtime(true);
             $rules = [
                 'excel_file' => 'required|mimes:xlsx,xls|max:10240',
             ];
@@ -139,6 +140,9 @@ class ImportController extends Controller
             \Log::debug('POST Preview - Starting Excel import process');
             $importer = new CpmkCplImport(true);
             Excel::import($importer, storage_path('app/public/' . $filePath));
+            $importEnd = microtime(true);
+            $importDuration = $importEnd - $importStart;
+            $request->session()->put('import_preview_duration', number_format($importDuration, 2));
 
             // Verifikasi data session setelah import
             \Log::debug('POST Preview - Session keys after import: ' . json_encode(array_keys($request->session()->all())));
@@ -220,7 +224,8 @@ class ImportController extends Controller
     {
         $pengampuIds = $request->input('pengampu_ids', $request->session()->get('pengampu_ids', []));
 
-        try {
+    $startTime = microtime(true);
+    try {
             // Verifikasi data preview tersedia
             if (!$request->session()->has('import_preview_data')) {
                 throw new \Exception('Data preview tidak ditemukan. Silakan upload ulang.');
@@ -277,14 +282,19 @@ class ImportController extends Controller
                     'pengampu_session'
                 ]);
 
+                $endTime = microtime(true);
+                $duration = $endTime - $startTime;
+                $durationFormatted = number_format($duration, 2);
+                $successMessage = 'Data berhasil diimpor! Proses impor selesai dalam ' . $durationFormatted . ' detik.';
+
                 if ($request->ajax()) {
                     return response()->json([
                         'success' => true,
-                        'message' => 'Data berhasil diimpor!'
+                        'message' => $successMessage
                     ]);
                 }
 
-                return redirect()->route('import.form')->with('success', 'Data berhasil diimport.');
+                return redirect()->route('import.form')->with('success', $successMessage);
             } catch (\Exception $e) {
                 // Roll back transaction jika gagal
                 \DB::rollback();

@@ -9,6 +9,12 @@
                     <h3 class="card-title">Preview Data Import</h3>
                 </div>
                 <div class="card-body">
+                    @if(session()->has('import_preview_duration'))
+                    <div class="alert alert-success mb-3">
+                        <strong>Durasi Proses Impor:</strong> {{ session('import_preview_duration') }} detik (waktu proses parsing file sebelum preview)
+                    </div>
+                    @endif
+
                     <div class="alert alert-info">
                         <h5><i class="icon fas fa-info"></i> Informasi</h5>
                         Berikut adalah preview data yang akan diimpor. Silakan periksa data berikut sebelum melanjutkan.
