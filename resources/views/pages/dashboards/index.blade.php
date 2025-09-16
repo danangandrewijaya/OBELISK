@@ -21,7 +21,7 @@
                             <div class="d-flex align-items-center position-relative">
                                 <h2>Dashboard</h2>
                                 <span class="h-20px border-gray-200 border-start ms-3 mx-2"></span>
-                                <span id="semester-aktif" class="text-muted fs-7 fw-semibold">Semester </span>
+
                             </div>
                         </div>
                         <div class="card-toolbar">
@@ -220,7 +220,6 @@
         // Initialize dashboard
 
         Promise.all([
-            getElement('semester-aktif'),
             getElement('kurikulum-filter'),
             getElement('semester-filter'),
             getElement('cpmk-count'),
@@ -229,9 +228,8 @@
             getElement('mks-aktif-count'),
             getElement('curriculum_distribution_chart'),
             getElement('cpmk_cpl_chart')
-        ]).then(([semesterLabel, kurikulumFilter, semesterFilter, cpmk, cpl, mks, mksAktif, curriculumChart, cpmkCplChart]) => {
+        ]).then(([kurikulumFilter, semesterFilter, cpmk, cpl, mks, mksAktif, curriculumChart, cpmkCplChart]) => {
             const elements = {
-                semesterLabel,
                 kurikulumFilter,
                 semesterFilter,
                 cpmk,
