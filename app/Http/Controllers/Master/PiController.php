@@ -14,9 +14,16 @@ class PiController extends Controller
     {
         $kurikulumId = $request->get('kurikulum_id');
         $cplId = $request->get('cpl_id');
-        $kurikulums = Kurikulum::where('prodi_id', session('prodi_id'))->get();
+        $prodiId = session('prodi_id');
+        $kurikulums = Kurikulum::where('prodi_id', $prodiId)->get();
         $cpls = collect();
         $query = Pi::query();
+        // Selalu filter PI berdasarkan prodi user
+        if ($prodiId) {
+            $query->whereHas('cpl.kurikulum', function($q) use ($prodiId) {
+                $q->where('prodi_id', $prodiId);
+            });
+        }
         if ($kurikulumId) {
             $cpls = Cpl::where('kurikulum_id', $kurikulumId)->get();
             $query->whereHas('cpl', function($q) use ($kurikulumId) {
@@ -45,7 +52,19 @@ class PiController extends Controller
             'nomor' => 'required|integer|min:1',
             'nama' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
-            'cpl_id' => 'required|exists:mst_cpl,id',
+            'cpl_id' => [
+                'required',
+                'exists:mst_cpl,id',
+                function ($attribute, $value, $fail) {
+                    $prodiId = session('prodi_id');
+                    if ($prodiId) {
+                        $cpl = \App\Models\Cpl::find($value);
+                        if (!$cpl || $cpl->prodi_id != $prodiId) {
+                            $fail('CPL tidak valid untuk prodi Anda.');
+                        }
+                    }
+                }
+            ],
         ]);
         Pi::create($validated);
         return redirect()->route('master.pi.index', ['cpl_id' => $validated['cpl_id']])->with('success', 'PI berhasil ditambahkan.');
@@ -60,11 +79,27 @@ class PiController extends Controller
 
     public function update(Request $request, Pi $pi)
     {
+        // Pastikan PI yang diupdate milik prodi user
+        $prodiId = session('prodi_id');
+        if ($prodiId && (!$pi->cpl || $pi->cpl->prodi_id != $prodiId)) {
+            abort(403, 'PI tidak valid untuk prodi Anda.');
+        }
         $validated = $request->validate([
             'nomor' => 'required|integer|min:1',
             'nama' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
-            'cpl_id' => 'required|exists:mst_cpl,id',
+            'cpl_id' => [
+                'required',
+                'exists:mst_cpl,id',
+                function ($attribute, $value, $fail) use ($prodiId) {
+                    if ($prodiId) {
+                        $cpl = \App\Models\Cpl::find($value);
+                        if (!$cpl || $cpl->prodi_id != $prodiId) {
+                            $fail('CPL tidak valid untuk prodi Anda.');
+                        }
+                    }
+                }
+            ],
         ]);
         $pi->update($validated);
         return redirect()->route('master.pi.index', ['cpl_id' => $validated['cpl_id']])->with('success', 'PI berhasil diupdate.');
@@ -72,6 +107,10 @@ class PiController extends Controller
 
     public function destroy(Pi $pi)
     {
+        $prodiId = session('prodi_id');
+        if ($prodiId && (!$pi->cpl || $pi->cpl->prodi_id != $prodiId)) {
+            abort(403, 'PI tidak valid untuk prodi Anda.');
+        }
         $cplId = $pi->cpl_id;
         $pi->delete();
         return redirect()->route('master.pi.index', ['cpl_id' => $cplId])->with('success', 'PI berhasil dihapus.');
