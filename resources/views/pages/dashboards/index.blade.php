@@ -42,7 +42,7 @@
         <!--begin::Row-->
         <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
             <!-- CPMK Card -->
-            <div class="col-md-6 col-lg-6 col-xl-4 mb-5 mb-xl-0">
+            <div class="col-md-6 col-lg-3 col-xl-3 mb-5 mb-xl-0">
                 <div class="card card-flush h-md-100">
                     <div class="card-header pt-5">
                         <div class="card-title d-flex flex-column">
@@ -61,7 +61,7 @@
             </div>
 
             <!-- CPL Card -->
-            <div class="col-md-6 col-lg-6 col-xl-4 mb-5 mb-xl-0">
+            <div class="col-md-6 col-lg-3 col-xl-3 mb-5 mb-xl-0">
                 <div class="card card-flush h-md-100">
                     <div class="card-header pt-5">
                         <div class="card-title d-flex flex-column">
@@ -79,19 +79,38 @@
                 </div>
             </div>
 
-            <!-- MKS Card -->
-            <div class="col-md-6 col-lg-6 col-xl-4 mb-5 mb-xl-0">
+            <!-- MKS Aktif Card (Makul SMT Aktif) -->
+            <div class="col-md-6 col-lg-3 col-xl-3 mb-5 mb-xl-0">
                 <div class="card card-flush h-md-100">
                     <div class="card-header pt-5">
                         <div class="card-title d-flex flex-column">
-                            <span class="fs-2hx fw-bold text-dark me-2" id="mks-count">0</span>
-                            <span class="text-gray-400 pt-1 fw-semibold fs-6">Mata Kuliah Aktif</span>
+                            <span class="fs-2hx fw-bold text-dark me-2" id="mks-aktif-count">0</span>
+                            <span class="text-gray-400 pt-1 fw-semibold fs-6">Makul SMT Aktif</span>
                         </div>
                     </div>
                     <div class="card-body pt-2 pb-4">
                         <div class="d-flex flex-wrap">
                             <div class="d-flex flex-center me-5 pt-2">
-                                <span class="fw-bold fs-6 text-gray-800">Total Mata Kuliah Semester</span>
+                                <span class="fw-bold fs-6 text-gray-800">Makul semester yang sudah ada nilainya</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MKS Card (Total Mata Kuliah Semester) -->
+            <div class="col-md-6 col-lg-3 col-xl-3 mb-5 mb-xl-0">
+                <div class="card card-flush h-md-100">
+                    <div class="card-header pt-5">
+                        <div class="card-title d-flex flex-column">
+                            <span class="fs-2hx fw-bold text-dark me-2" id="mks-count">0</span>
+                            <span class="text-gray-400 pt-1 fw-semibold fs-6">Total Mata Kuliah Semester</span>
+                        </div>
+                    </div>
+                    <div class="card-body pt-2 pb-4">
+                        <div class="d-flex flex-wrap">
+                            <div class="d-flex flex-center me-5 pt-2">
+                                <span class="fw-bold fs-6 text-gray-800">Jumlah seluruh makul semester</span>
                             </div>
                         </div>
                     </div>
@@ -202,15 +221,17 @@
             getElement('cpmk-count'),
             getElement('cpl-count'),
             getElement('mks-count'),
+            getElement('mks-aktif-count'),
             getElement('curriculum_distribution_chart'),
             getElement('cpmk_cpl_chart')
-        ]).then(([semesterLabel, semesterFilter, cpmk, cpl, mks, curriculumChart, cpmkCplChart]) => {
+        ]).then(([semesterLabel, semesterFilter, cpmk, cpl, mks, mksAktif, curriculumChart, cpmkCplChart]) => {
             const elements = {
                 semesterLabel,
                 semesterFilter,
                 cpmk,
                 cpl,
                 mks,
+                mksAktif,
                 curriculumChart,
                 cpmkCplChart
             };
@@ -314,6 +335,7 @@
                         elements.cpmk.textContent = data.cpmk_count || 0;
                         elements.cpl.textContent = data.cpl_count || 0;
                         elements.mks.textContent = data.mks_count || 0;
+                        elements.mksAktif.textContent = data.mks_aktif_count || 0;
                     } catch (error) {
                         console.error('Error updating count cards:', error);
                     }
@@ -365,13 +387,21 @@
         function updateCurriculumChart(chartElement, curriculumData) {
             // Prepare data for the chart
             const categories = curriculumData.map(item => item.semester);
-            const seriesData = curriculumData.map(item => parseInt(item.count));
+            const totalData = curriculumData.map(item => parseInt(item.total));
+            const aktifData = curriculumData.map(item => parseInt(item.aktif));
 
+            // Show 'Makul Aktif' (aktifData) on the left, 'Total Makul' (totalData) on the right
             const curriculumOptions = {
-                series: [{
-                    name: 'Mata Kuliah',
-                    data: seriesData
-                }],
+                series: [
+                    {
+                        name: 'Makul Aktif',
+                        data: aktifData
+                    },
+                    {
+                        name: 'Total Makul',
+                        data: totalData
+                    }
+                ],
                 chart: {
                     type: 'bar',
                     height: 300,
@@ -384,7 +414,7 @@
                         horizontal: false,
                         columnWidth: '55%',
                         endingShape: 'rounded',
-                        distributed: true
+                        // distributed: true
                     },
                 },
                 dataLabels: {
@@ -401,7 +431,7 @@
                         text: 'Jumlah Mata Kuliah'
                     }
                 },
-                colors: ['#3699FF', '#F64E60', '#8950FC', '#50CD89', '#FFA800', '#181C32', '#009EF7'],
+                colors: ['#3699FF', '#50CD89'],
                 fill: {
                     opacity: 1
                 },
@@ -417,10 +447,16 @@
             if (curriculumChartInstance) {
                 // Update existing chart
                 curriculumChartInstance.updateOptions({
-                    series: [{
-                        name: 'Mata Kuliah',
-                        data: seriesData
-                    }],
+                    series: [
+                        {
+                            name: 'Makul Aktif',
+                            data: aktifData
+                        },
+                        {
+                            name: 'Total Makul',
+                            data: totalData
+                        }
+                    ],
                     xaxis: {
                         categories: categories
                     }

@@ -89,8 +89,13 @@ class DashboardController extends Controller
                     ->where('semester', $semesterNum);
         }
 
-        // Get MKS count
-        $mksCount = $mksQuery->count();
+
+    // Get MKS count (Total Mata Kuliah Semester)
+    $mksCount = $mksQuery->count();
+
+    // Get MKS Aktif count (Makul SMT Aktif: yang sudah ada nilainya di trx_nilai)
+    $mksAktifQuery = clone $mksQuery;
+    $mksAktifCount = $mksAktifQuery->whereHas('nilai')->count();
 
         // Get CPMK count for selected semester(s)
         $cpmkCount = Cpmk::whereHas('mks', function ($query) use ($semester, $prodiId) {
@@ -149,7 +154,7 @@ class DashboardController extends Controller
                                                         ->orderBy('mst_cpl.nomor')
                                                         ->get();
 
-        // Get curriculum distribution (mata kuliah per semester)
+        // Get curriculum distribution (total makul per semester)
         $curriculumDistributionQuery = DB::table('mst_mata_kuliah_kurikulum')
             ->select('mst_mata_kuliah_semester.tahun', 'mst_mata_kuliah_semester.semester as semester_num', DB::raw('COUNT(*) as count'))
             ->join('mst_mata_kuliah_semester', 'mst_mata_kuliah_kurikulum.id', '=', 'mst_mata_kuliah_semester.mkk_id');
@@ -167,16 +172,57 @@ class DashboardController extends Controller
                 ->where('mst_kurikulum.prodi_id', $prodiId);
         }
 
-        $curriculumDistribution = $curriculumDistributionQuery->groupBy('mst_mata_kuliah_semester.tahun', 'mst_mata_kuliah_semester.semester')
+        $curriculumDistributionRaw = $curriculumDistributionQuery->groupBy('mst_mata_kuliah_semester.tahun', 'mst_mata_kuliah_semester.semester')
                                                             ->orderBy('mst_mata_kuliah_semester.tahun')
                                                             ->orderBy('mst_mata_kuliah_semester.semester')
-                                                            ->get()
-                                                            ->map(function ($item) {
-                                                                return [
-                                                                    'semester' => $item->tahun . '-' . $item->semester_num,
-                                                                    'count' => $item->count
-                                                                ];
-                                                            });
+                                                            ->get();
+
+        // Get curriculum distribution for active makul (yang sudah ada nilai di trx_nilai)
+        $curriculumDistributionAktifQuery = DB::table('mst_mata_kuliah_kurikulum')
+            ->select('mst_mata_kuliah_semester.tahun', 'mst_mata_kuliah_semester.semester as semester_num', DB::raw('COUNT(DISTINCT mst_mata_kuliah_semester.id) as count'))
+            ->join('mst_mata_kuliah_semester', 'mst_mata_kuliah_kurikulum.id', '=', 'mst_mata_kuliah_semester.mkk_id')
+            ->join('trx_nilai', 'mst_mata_kuliah_semester.id', '=', 'trx_nilai.mks_id');
+
+        if ($semester !== 'all' && strpos($semester, '-') !== false) {
+            list($tahun, $semesterNum) = explode('-', $semester);
+            $curriculumDistributionAktifQuery->where('mst_mata_kuliah_semester.tahun', $tahun)
+                                       ->where('mst_mata_kuliah_semester.semester', $semesterNum);
+        }
+        if ($prodiId) {
+            $curriculumDistributionAktifQuery->leftJoin('mst_kurikulum', 'mst_mata_kuliah_kurikulum.kurikulum_id', '=', 'mst_kurikulum.id')
+                ->where('mst_kurikulum.prodi_id', $prodiId);
+        }
+
+        $curriculumDistributionAktifRaw = $curriculumDistributionAktifQuery->groupBy('mst_mata_kuliah_semester.tahun', 'mst_mata_kuliah_semester.semester')
+                                                            ->orderBy('mst_mata_kuliah_semester.tahun')
+                                                            ->orderBy('mst_mata_kuliah_semester.semester')
+                                                            ->get();
+
+        // Gabungkan data ke bentuk array dengan key semester
+        $curriculumDistribution = collect();
+        foreach ($curriculumDistributionRaw as $item) {
+            $key = $item->tahun . '-' . $item->semester_num;
+            $curriculumDistribution->put($key, [
+                'semester' => $key,
+                'total' => (int)$item->count,
+                'aktif' => 0
+            ]);
+        }
+        foreach ($curriculumDistributionAktifRaw as $item) {
+            $key = $item->tahun . '-' . $item->semester_num;
+            if (!$curriculumDistribution->has($key)) {
+                $curriculumDistribution->put($key, [
+                    'semester' => $key,
+                    'total' => 0,
+                    'aktif' => (int)$item->count
+                ]);
+            } else {
+                $existing = $curriculumDistribution->get($key);
+                $existing['aktif'] = (int)$item->count;
+                $curriculumDistribution->put($key, $existing);
+            }
+        }
+        $curriculumDistribution = $curriculumDistribution->values();
 
         // Get MKS list with CPMK and CPL counts
         $mksListQuery = clone $mksQuery;
@@ -223,6 +269,7 @@ class DashboardController extends Controller
             'cpmk_count' => $cpmkCount,
             'cpl_count' => $cplCount,
             'mks_count' => $mksCount,
+            'mks_aktif_count' => $mksAktifCount,
             'cpmk_cpl_distribution' => $cpmkCplDistribution,
             'curriculum_distribution' => $curriculumDistribution,
             'mks_list' => $mksList
