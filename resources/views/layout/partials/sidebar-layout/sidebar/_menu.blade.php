@@ -92,34 +92,53 @@
 				<!--end:Menu link-->
 			</div>
 			<!--end:Menu item-->
-			<!--begin:Menu item-->
-            @if(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI)
+
+			@if(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI)
+			<!--begin:Menu Siklus di Apps-->
 			<div class="menu-item">
-				<!--begin:Menu link-->
 				<a class="menu-link {{ request()->routeIs('siklus.index') ? 'active' : '' }}" href="{{ route('siklus.index') }}">
 					<span class="menu-icon">{!! getIcon('chart-line', 'fs-2') !!}</span>
 					<span class="menu-title">Siklus CPL</span>
 				</a>
-				<!--end:Menu link-->
 			</div>
 			<div class="menu-item">
-				<!--begin:Menu link-->
 				<a class="menu-link {{ request()->routeIs('siklus.compare-cpl') ? 'active' : '' }}" href="{{ route('siklus.compare-cpl') }}">
 					<span class="menu-icon">{!! getIcon('chart-line-up', 'fs-2') !!}</span>
 					<span class="menu-title">Perbandingan Siklus</span>
 				</a>
-				<!--end:Menu link-->
 			</div>
 			<div class="menu-item">
-				<!--begin:Menu link-->
 				<a class="menu-link {{ request()->routeIs('siklus2.index') ? 'active' : '' }}" href="{{ route('siklus2.index') }}">
 					<span class="menu-icon">{!! getIcon('chart-line-star', 'fs-2') !!}</span>
 					<span class="menu-title">Siklus PI</span>
 				</a>
-				<!--end:Menu link-->
 			</div>
+			<!--end:Menu Siklus di Apps-->
             @endif
 			<!--end:Menu item-->
+
+			<!--begin:Menu item-->
+			@if(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI)
+			<!--begin:Menu Master-->
+			<div class="menu-item pt-5">
+				<div class="menu-content">
+					<span class="menu-heading fw-bold text-uppercase fs-7">Master</span>
+				</div>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('master.kurikulum.*') ? 'active' : '' }}" href="{{ route('master.kurikulum.index') }}">
+					<span class="menu-icon">{!! getIcon('book', 'fs-2') !!}</span>
+					<span class="menu-title">Master Kurikulum</span>
+				</a>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('master.cpl.*') ? 'active' : '' }}" href="{{ route('master.cpl.index') }}">
+					<span class="menu-icon">{!! getIcon('award', 'fs-2') !!}</span>
+					<span class="menu-title">Master CPL</span>
+				</a>
+			</div>
+			<!--end:Menu Master-->
+			@endif
 
             @if(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI)
 			<!--begin:Menu item-->

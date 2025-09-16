@@ -93,7 +93,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Master Kurikulum CRUD
     Route::prefix('master')->name('master.')->group(function () {
-        Route::resource('kurikulum', \App\Http\Controllers\Master\KurikulumController::class);
+    Route::resource('kurikulum', \App\Http\Controllers\Master\KurikulumController::class);
+    Route::resource('cpl', \App\Http\Controllers\Master\CplController::class);
         Route::resource('matakuliah-semester', \App\Http\Controllers\MataKuliahSemesterController::class);
     });
 

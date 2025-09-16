@@ -25,6 +25,7 @@
                     <tr>
                         <td>{{ $kurikulum->nama }}</td>
                         <td>
+                            <a href="{{ route('master.cpl.index', ['kurikulum_id' => $kurikulum->id]) }}" class="btn btn-info btn-sm">Lihat CPL</a>
                             <a href="{{ route('master.kurikulum.edit', $kurikulum) }}" class="btn btn-warning btn-sm">Edit</a>
                             <form action="{{ route('master.kurikulum.destroy', $kurikulum) }}" method="POST" style="display:inline-block;">
                                 @csrf

@@ -29,4 +29,9 @@ class Cpl extends Model
     {
         return $this->belongsToMany(Cpmk::class, 'trx_cpmk_cpl', 'cpl_id', 'cpmk_id');
     }
+
+    public function kurikulum()
+    {
+        return $this->belongsTo(\App\Models\Kurikulum::class, 'kurikulum_id');
+    }
 }
