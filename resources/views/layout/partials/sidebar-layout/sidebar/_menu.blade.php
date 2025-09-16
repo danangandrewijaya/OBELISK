@@ -77,7 +77,7 @@
 				<!--begin:Menu link-->
 				<a class="menu-link {{ request()->routeIs('master.matakuliah-semester.index') ? 'active' : '' }}" href="{{ route('master.matakuliah-semester.index') }}">
 					<span class="menu-icon">{!! getIcon('briefcase', 'fs-2') !!}</span>
-					<span class="menu-title">Mata Kuliah</span>
+					<span class="menu-title">Mata Kuliah @if(session('active_role') === App\Core\Constants::ROLE_ADMIN_PRODI)Semester @endif </span>
 				</a>
 				<!--end:Menu link-->
 			</div>
@@ -141,6 +141,12 @@
 				<a class="menu-link {{ request()->routeIs('master.pi.*') ? 'active' : '' }}" href="{{ route('master.pi.index') }}">
 					<span class="menu-icon">{!! getIcon('star', 'fs-2') !!}</span>
 					<span class="menu-title">Master PI</span>
+				</a>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('master.matakuliah-kurikulum.*') ? 'active' : '' }}" href="{{ route('master.matakuliah-kurikulum.index') }}">
+					<span class="menu-icon">{!! getIcon('briefcase', 'fs-2') !!}</span>
+					<span class="menu-title">Mata Kuliah Kurikulum</span>
 				</a>
 			</div>
 			<!--end:Menu Master-->

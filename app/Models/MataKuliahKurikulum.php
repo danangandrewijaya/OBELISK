@@ -15,10 +15,12 @@ class MataKuliahKurikulum extends Model
     protected $fillable = [
         'kode',
         'nama',
+        'kategori',
+        'semester',
         'kurikulum_id',
         'sks',
     ];
-    
+
     public function kurikulum()
     {
         return $this->belongsTo(Kurikulum::class);

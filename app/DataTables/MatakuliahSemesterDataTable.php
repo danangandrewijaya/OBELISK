@@ -62,8 +62,8 @@ class MatakuliahSemesterDataTable extends DataTable
 
     public function query(MataKuliahSemester $model): QueryBuilder
     {
-        $query = $model->newQuery()
-            ->with(['mkk', 'pengampuDosens']);
+
+        $query = $model->newQuery()->with(['mkk', 'pengampuDosens']);
 
         $prodiId = session('prodi_id');
         if ($prodiId) {
@@ -74,12 +74,22 @@ class MatakuliahSemesterDataTable extends DataTable
             });
         }
 
-        // Apply kurikulum filter if present
-        $kurikulum = $this->request()->get('kurikulum');
-        if ($this->request()->has('kurikulum')) {
-            $query->whereHas('mkk', function ($q) use ($kurikulum) {
-                $q->where('kurikulum_id', $kurikulum);
+        // Filter by kurikulum_id and kode from URL (for "lihat MKS" link)
+        $kurikulumId = $this->request()->get('kurikulum_id');
+        $kode = $this->request()->get('kode');
+        if ($kurikulumId && $kode) {
+            $query->whereHas('mkk', function ($q) use ($kurikulumId, $kode) {
+                $q->where('kurikulum_id', $kurikulumId)
+                  ->where('kode', $kode);
             });
+        } else {
+            // Apply kurikulum filter if present (from filter form)
+            $kurikulum = $this->request()->get('kurikulum');
+            if ($this->request()->has('kurikulum')) {
+                $query->whereHas('mkk', function ($q) use ($kurikulum) {
+                    $q->where('kurikulum_id', $kurikulum);
+                });
+            }
         }
 
         // Apply year filter if present
