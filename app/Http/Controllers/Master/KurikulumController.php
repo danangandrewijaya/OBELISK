@@ -9,7 +9,7 @@ class KurikulumController extends \App\Http\Controllers\Controller
 {
     public function index()
     {
-        $kurikulums = Kurikulum::all();
+        $kurikulums = Kurikulum::where('prodi_id', session('prodi_id'))->get();
         return view('master.kurikulum.index', compact('kurikulums'));
     }
 
