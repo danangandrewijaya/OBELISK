@@ -33,8 +33,8 @@
                                     <input type="hidden" name="prodi_id" value="{{ $a->prodi_id }}">
                                     <div class="d-flex justify-content-between align-items-center p-3 border rounded">
                                         <div>
-                                            <div class="fw-bold">{{ $a->role_name }}</div>
-                                            <div class="text-muted small">{{ $a->prodi_name ?? 'Semua Prodi' }}</div>
+                                            <div class="fw-bold text-uppercase">{{ $a->role_name }}</div>
+                                            <div class="fw-bold text-muted">{{ $a->prodi_name ?? 'Semua Prodi' }}</div>
                                         </div>
                                         @if($isSelected)
                                             <button type="button" class="btn btn-success" disabled>

@@ -16,7 +16,7 @@
             <div class="d-none d-md-flex align-items-center me-3">
                 <span class="badge bg-primary text-white text-uppercase fw-bold py-2 px-3 me-2">{{ $activeRole }}</span>
                 @if($prodiName)
-                    <span class="text-muted small">{{ $prodiName }}</span>
+                    <span class="text-muted">{{ $prodiName }}</span>
                 @endif
             </div>
         @endif
