@@ -42,6 +42,7 @@
                     <td>{{ $cpl->deskripsi }}</td>
                     <td>{{ $cpl->kurikulum->nama ?? '-' }}</td>
                     <td>
+                        <a href="{{ route('master.pi.index', ['cpl_id' => $cpl->id, 'kurikulum_id' => $cpl->kurikulum_id]) }}" class="btn btn-info btn-sm mb-1">Lihat PI</a>
                         <a href="{{ route('master.cpl.edit', $cpl) }}" class="btn btn-warning btn-sm">Edit</a>
                         <form action="{{ route('master.cpl.destroy', $cpl) }}" method="POST" style="display:inline-block;">
                             @csrf

@@ -122,7 +122,7 @@
 			<!--begin:Menu Master-->
 			<div class="menu-item pt-5">
 				<div class="menu-content">
-					<span class="menu-heading fw-bold text-uppercase fs-7">Master</span>
+					<span class="menu-heading fw-bold text-uppercase fs-7">Data Master</span>
 				</div>
 			</div>
 			<div class="menu-item">
@@ -135,6 +135,12 @@
 				<a class="menu-link {{ request()->routeIs('master.cpl.*') ? 'active' : '' }}" href="{{ route('master.cpl.index') }}">
 					<span class="menu-icon">{!! getIcon('award', 'fs-2') !!}</span>
 					<span class="menu-title">Master CPL</span>
+				</a>
+			</div>
+			<div class="menu-item">
+				<a class="menu-link {{ request()->routeIs('master.pi.*') ? 'active' : '' }}" href="{{ route('master.pi.index') }}">
+					<span class="menu-icon">{!! getIcon('star', 'fs-2') !!}</span>
+					<span class="menu-title">Master PI</span>
 				</a>
 			</div>
 			<!--end:Menu Master-->

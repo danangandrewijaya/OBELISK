@@ -95,6 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('master')->name('master.')->group(function () {
     Route::resource('kurikulum', \App\Http\Controllers\Master\KurikulumController::class);
     Route::resource('cpl', \App\Http\Controllers\Master\CplController::class);
+    Route::resource('pi', \App\Http\Controllers\Master\PiController::class);
         Route::resource('matakuliah-semester', \App\Http\Controllers\MataKuliahSemesterController::class);
     });
 
